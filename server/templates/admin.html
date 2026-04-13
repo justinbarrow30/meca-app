@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meca Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #F5F7FA; color: #1A1D2B; }
+    a { color: #4F6AF6; text-decoration: none; }
+    .login-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #4F6AF6 0%, #3B54D4 100%); }
+    .login-card { background: #fff; border-radius: 16px; padding: 40px; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+    .login-card h1 { font-size: 24px; margin-bottom: 4px; color: #1A1D2B; }
+    .login-card p { font-size: 14px; color: #6B7280; margin-bottom: 24px; }
+    .login-card .logo { font-size: 28px; font-weight: 800; color: #4F6AF6; margin-bottom: 20px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 10px 14px; border: 1px solid #E5E7EB; border-radius: 8px;
+      font-size: 14px; outline: none; transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #4F6AF6; }
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: #4F6AF6; color: #fff; }
+    .btn-primary:hover { background: #3B54D4; }
+    .btn-sm { padding: 6px 14px; font-size: 12px; }
+    .btn-danger { background: #E8272C; color: #fff; }
+    .btn-success { background: #22C55E; color: #fff; }
+    .btn-outline { background: transparent; border: 1px solid #E5E7EB; color: #374151; }
+    .btn-outline:hover { background: #F9FAFB; }
+    .btn-warning { background: #F59E0B; color: #fff; }
+    .btn-full { width: 100%; padding: 12px; }
+    .error-msg { color: #E8272C; font-size: 13px; margin-top: 8px; }
+
+    .dashboard { display: flex; min-height: 100vh; }
+    .sidebar { width: 240px; background: #1A1D2B; color: #fff; padding: 24px 0; flex-shrink: 0; position: fixed; top: 0; left: 0; bottom: 0; overflow-y: auto; transition: width 0.25s ease; z-index: 100; }
+    .sidebar.collapsed { width: 56px; }
+    .sidebar .brand { font-size: 22px; font-weight: 800; color: #4F6AF6; padding: 0 24px; margin-bottom: 32px; white-space: nowrap; overflow: hidden; }
+    .sidebar .brand span { color: #F5E642; }
+    .sidebar.collapsed .brand { padding: 0 14px; font-size: 18px; }
+    .sidebar nav a {
+      display: flex; align-items: center; gap: 10px; padding: 10px 24px; color: rgba(255,255,255,0.6);
+      font-size: 14px; font-weight: 500; transition: all 0.2s; white-space: nowrap; overflow: hidden;
+    }
+    .sidebar.collapsed nav a { padding: 10px 16px; justify-content: center; }
+    .sidebar.collapsed nav a .nav-label { display: none; }
+    .sidebar nav a:hover, .sidebar nav a.active { color: #fff; background: rgba(79,106,246,0.15); }
+    .sidebar nav a.active { border-right: 3px solid #4F6AF6; }
+    .sidebar .user-info { padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.1); position: absolute; bottom: 0; left: 0; right: 0; overflow: hidden; white-space: nowrap; }
+    .sidebar.collapsed .user-info { padding: 12px 8px; text-align: center; }
+    .sidebar.collapsed .user-info .name,
+    .sidebar.collapsed .user-info .role,
+    .sidebar.collapsed .user-info #logout-btn { display: none; }
+    .sidebar .user-info .name { font-size: 14px; font-weight: 600; }
+    .sidebar .user-info .role { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+    .sidebar-toggle { position: fixed; top: 12px; left: 244px; z-index: 101; width: 28px; height: 28px; border-radius: 50%; border: 1px solid #E5E7EB; background: #fff; color: #374151; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.1); transition: left 0.25s ease; font-size: 14px; }
+    .sidebar-toggle.shifted { left: 60px; }
+
+    .main { flex: 1; margin-left: 240px; padding: 24px 32px; transition: margin-left 0.25s ease; }
+    .main.expanded { margin-left: 56px; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 8px; }
+    .page-header h2 { font-size: 24px; font-weight: 700; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .stat-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .stat-card .label { font-size: 12px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-card .value { font-size: 28px; font-weight: 700; margin-top: 4px; }
+    .stat-card .accent { color: #4F6AF6; }
+
+    .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 20px; }
+    .card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+
+    table { width: 100%; border-collapse: collapse; }
+    table th { text-align: left; font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; border-bottom: 2px solid #E5E7EB; }
+    table td { padding: 12px; border-bottom: 1px solid #F3F4F6; font-size: 14px; }
+    table tr:hover { background: #F9FAFB; }
+
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    .badge-live { background: #FEE2E2; color: #E8272C; animation: pulse-live 2s infinite; }
+    .badge-upcoming { background: #EEF2FF; color: #4F6AF6; }
+    .badge-completed { background: #F3F4F6; color: #6B7280; }
+    .badge-admin { background: #EEF2FF; color: #4F6AF6; }
+    .badge-final { background: #DCFCE7; color: #22C55E; }
+    .badge-scheduled { background: #F3F4F6; color: #6B7280; }
+    .badge-locked { background: #1A1D2B; color: #fff; }
+    .badge-cancelled { background: #F3F4F6; color: #9CA3AF; }
+    .badge-draft { background: #FEF3C7; color: #92400E; }
+    .badge-warning { background: #FEF3C7; color: #92400E; }
+
+    @keyframes pulse-live { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+    .flex { display: flex; } .gap-2 { gap: 8px; } .gap-4 { gap: 16px; }
+    .items-center { align-items: center; } .justify-between { justify-content: space-between; }
+    .mt-4 { margin-top: 16px; } .mb-4 { margin-bottom: 16px; }
+    .hidden { display: none; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal { background: #fff; border-radius: 16px; padding: 28px; width: 500px; max-height: 80vh; overflow-y: auto; }
+    .modal h3 { font-size: 18px; margin-bottom: 20px; }
+
+    .score-display { display: flex; align-items: center; gap: 12px; justify-content: center; padding: 16px; background: #F9FAFB; border-radius: 12px; margin-bottom: 12px; }
+    .score-display .team-name { font-weight: 700; font-size: 16px; min-width: 80px; }
+    .score-display .team-a { text-align: right; }
+    .score-display .team-b { text-align: left; }
+    .score-display .score-input { width: 60px; font-size: 24px; font-weight: 800; text-align: center; padding: 8px; border: 2px solid #E5E7EB; border-radius: 8px; }
+    .score-display .score-input:focus { border-color: #4F6AF6; }
+    .score-display .vs { font-size: 14px; color: #9CA3AF; font-weight: 600; }
+    .score-btn { min-width: 28px; height: 28px; border-radius: 6px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0 6px; }
+    .score-btn-plus { background: #4F6AF6; color: #fff; }
+    .score-btn-minus { background: #E5E7EB; color: #374151; }
+    .score-btns-row { display: flex; gap: 3px; align-items: center; flex-wrap: wrap; justify-content: center; }
+    .score-team-block { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .score-team-label { font-size: 11px; font-weight: 600; color: #6B7280; }
+    .score-team-value { font-size: 22px; font-weight: 800; min-width: 30px; text-align: center; }
+    .score-undo-btn { width: 24px; height: 24px; border-radius: 50%; border: 1px solid #E5E7EB; background: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #9CA3AF; }
+
+    .live-indicator { display: inline-flex; align-items: center; gap: 6px; }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #E8272C; animation: pulse-live 1.5s infinite; }
+    .auto-refresh-label { font-size: 12px; color: #6B7280; }
+
+    .game-card { background: #fff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .game-card.live { border-color: #E8272C; border-width: 2px; }
+    .game-card .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .game-card .game-teams { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .game-card .game-team { text-align: center; flex: 1; }
+    .game-card .game-team .name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .game-card .game-team .abbr { font-size: 11px; color: #6B7280; }
+    .game-card .game-score { font-size: 28px; font-weight: 800; min-width: 80px; text-align: center; }
+    .game-card .game-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: center; flex-wrap: wrap; }
+
+    .bracket-container { display: flex; gap: 0; overflow-x: auto; padding: 20px 0; align-items: stretch; }
+    .bracket-round { display: flex; flex-direction: column; justify-content: space-around; min-width: 220px; position: relative; }
+    .bracket-round-title { text-align: center; font-size: 11px; font-weight: 700; color: #4F6AF6; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 12px; background: #4F6AF610; border-radius: 8px; margin-bottom: 12px; }
+    .bracket-match { background: #fff; border: 1px solid #E5E7EB; border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; position: relative; min-width: 200px; }
+    .bracket-match.live { border-color: #E8272C; border-width: 2px; }
+    .bracket-match.final { opacity: 0.85; }
+    .bracket-match-team { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 13px; }
+    .bracket-match-team.winner { color: #10B981; font-weight: 700; }
+    .bracket-match-team .team-label { font-weight: 600; }
+    .bracket-match-team .team-score { font-weight: 700; font-size: 14px; }
+    .bracket-match-divider { height: 1px; background: #E5E7EB; margin: 2px 0; }
+    .bracket-match-actions { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; align-items: center; }
+    .bracket-connector { width: 32px; display: flex; flex-direction: column; justify-content: space-around; position: relative; flex-shrink: 0; }
+    .bracket-connector::before { content: ''; position: absolute; right: 0; top: 25%; bottom: 25%; width: 2px; background: #E5E7EB; }
+    .connector-line { height: 2px; background: #E5E7EB; width: 100%; }
+
+    .game-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px; cursor: pointer; user-select: none; }
+    .section-header h3 { margin-bottom: 0; }
+    .collapse-toggle { font-size: 14px; color: #9CA3AF; transition: transform 0.2s; display: inline-block; margin-left: 8px; }
+    .collapse-toggle.collapsed { transform: rotate(-90deg); }
+    .collapsible-content { transition: none; }
+    .collapsible-content.collapsed { display: none; }
+
+    .back-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: #4F6AF6; cursor: pointer; margin-bottom: 16px; background: none; border: none; }
+    .back-btn:hover { color: #3B54D4; }
+
+    .pending-badge { background: #E8272C; color: #fff; font-size: 10px; font-weight: 700; border-radius: 10px; padding: 1px 6px; margin-left: 4px; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script>
+    const API = '/api';
+    let currentUser = null;
+    let currentPage = 'overview';
+    let liveRefreshInterval = null;
+    let viewingTournamentId = null;
+
+    async function api(path, opts = {}) {
+      const res = await fetch(API + path, {
+        headers: { 'Content-Type': 'application/json', ...opts.headers },
+        credentials: 'include',
+        ...opts,
+        body: opts.body ? JSON.stringify(opts.body) : undefined,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Request failed' }));
+        throw new Error(err.error || 'Request failed');
+      }
+      return res.json();
+    }
+
+    function stopLiveRefresh() {
+      if (liveRefreshInterval) { clearInterval(liveRefreshInterval); liveRefreshInterval = null; }
+    }
+
+    function render() {
+      stopLiveRefresh();
+      const app = document.getElementById('app');
+      if (!currentUser) { app.innerHTML = renderLogin(); bindLogin(); return; }
+      app.innerHTML = renderDashboard(); bindDashboard();
+    }
+
+    function renderLogin() {
+      return `<div class="login-page"><div class="login-card">
+        <div class="logo">MECA<span>.</span></div>
+        <h1>Admin Console</h1>
+        <p>Sign in to manage your tournaments</p>
+        <div class="form-group"><label>Username</label><input id="login-user" value="admin"></div>
+        <div class="form-group"><label>Password</label><input id="login-pass" type="password" value="admin123"></div>
+        <div id="login-error" class="error-msg hidden"></div>
+        <button id="login-btn" class="btn btn-primary btn-full" style="margin-top:8px">Sign In</button>
+      </div></div>`;
+    }
+
+    function bindLogin() {
+      document.getElementById('login-btn').onclick = async () => {
+        const errEl = document.getElementById('login-error');
+        errEl.classList.add('hidden');
+        try {
+          currentUser = await api('/auth/login', { method: 'POST', body: {
+            username: document.getElementById('login-user').value,
+            password: document.getElementById('login-pass').value,
+          }});
+          if (currentUser.role !== 'admin') { currentUser = null; errEl.textContent = 'Admin access required'; errEl.classList.remove('hidden'); return; }
+          render();
+        } catch (e) { errEl.textContent = e.message; errEl.classList.remove('hidden'); }
+      };
+    }
+
+    let sidebarCollapsed = false;
+
+    const navItems = [
+      { page: 'overview', label: 'Overview', icon: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>' },
+      { page: 'tournaments', label: 'Tournaments', icon: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 9 8 12 8s5-4 7.5-4a2.5 2.5 0 0 1 0 5H18"/><path d="M6 9v12h12V9"/><path d="M12 9v12"/>' },
+      { page: 'teams', label: 'Teams', icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
+      { page: 'players', label: 'Players', icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>' },
+      { page: 'games', label: 'Live Games', icon: '<circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>' },
+      { page: 'announcements', label: 'Announcements', icon: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>' },
+      { page: 'accounts', label: 'Accounts', icon: '<path d="M12 11c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><line x1="17" y1="3" x2="21" y2="3"/>' },
+      { page: 'approvals', label: 'Player Approvals', icon: '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/>' },
+      { page: 'audit', label: 'Audit Log', icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>' },
+    ];
+
+    function renderDashboard() {
+      const c = sidebarCollapsed;
+      return `<div class="dashboard">
+        <div class="sidebar${c ? ' collapsed' : ''}" id="sidebar">
+          <div class="brand">MECA<span>.</span></div>
+          <nav>
+            ${navItems.map(n => `<a href="#" data-page="${n.page}" class="${currentPage === n.page || (currentPage === 'tournament-detail' && n.page === 'tournaments') ? 'active' : ''}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${n.icon}</svg><span class="nav-label">${n.label}${n.page === 'approvals' ? '<span id="approvals-badge" class="pending-badge hidden">0</span>' : ''}</span></a>`).join('')}
+          </nav>
+          <div class="user-info"><div class="name">${currentUser.name || currentUser.username}</div><div class="role">Administrator</div>
+            <button id="logout-btn" class="btn btn-outline btn-sm" style="margin-top:8px;width:100%;color:#fff;border-color:rgba(255,255,255,0.2)">Sign Out</button>
+          </div>
+        </div>
+        <button class="sidebar-toggle${c ? ' shifted' : ''}" id="sidebar-toggle">${c ? '&#9654;' : '&#9664;'}</button>
+        <div class="main${c ? ' expanded' : ''}" id="main-content">Loading...</div>
+      </div>`;
+    }
+
+    function bindDashboard() {
+      document.querySelectorAll('[data-page]').forEach(a => {
+        a.onclick = (e) => { e.preventDefault(); stopLiveRefresh(); viewingTournamentId = null; currentPage = a.dataset.page; render(); };
+      });
+      document.getElementById('logout-btn').onclick = async () => {
+        stopLiveRefresh();
+        await api('/auth/logout', { method: 'POST' }); currentUser = null; render();
+      };
+      document.getElementById('sidebar-toggle').onclick = () => {
+        sidebarCollapsed = !sidebarCollapsed;
+        document.getElementById('sidebar').classList.toggle('collapsed', sidebarCollapsed);
+        document.getElementById('main-content').classList.toggle('expanded', sidebarCollapsed);
+        const toggle = document.getElementById('sidebar-toggle');
+        toggle.classList.toggle('shifted', sidebarCollapsed);
+        toggle.innerHTML = sidebarCollapsed ? '&#9654;' : '&#9664;';
+      };
+      loadPage(currentPage);
+      loadApprovalsBadge();
+    }
+
+    async function loadApprovalsBadge() {
+      try {
+        const pending = await api('/admin/pending-players');
+        const badge = document.getElementById('approvals-badge');
+        if (badge && pending.length > 0) {
+          badge.textContent = pending.length;
+          badge.classList.remove('hidden');
+        }
+      } catch {}
+    }
+
+    async function loadPage(page) {
+      const main = document.getElementById('main-content');
+      try {
+        switch (page) {
+          case 'overview': await loadOverview(main); break;
+          case 'tournaments': await loadTournaments(main); break;
+          case 'tournament-detail': await loadTournamentDetail(main); break;
+          case 'teams': await loadTeams(main); break;
+          case 'players': await loadPlayers(main); break;
+          case 'games': await loadGames(main); break;
+          case 'announcements': await loadAnnouncements(main); break;
+          case 'accounts': await loadAccounts(main); break;
+          case 'approvals': await loadApprovals(main); break;
+          case 'audit': await loadAudit(main); break;
+        }
+      } catch (e) { main.innerHTML = `<p class="error-msg">${e.message}</p>`; }
+    }
+
+    let allTeamsCache = [];
+    let teamsById = {};
+    let currentFieldsById = {};
+    async function refreshTeamsCache() {
+      allTeamsCache = await api('/teams');
+      teamsById = {};
+      allTeamsCache.forEach(t => teamsById[t.id] = t);
+    }
+
+    function teamName(id) { return teamsById[id]?.name || 'TBD'; }
+    function teamAbbr(id) { return teamsById[id]?.abbreviation || 'TBD'; }
+
+    async function loadOverview(el) {
+      const stats = await api('/admin/stats');
+      el.innerHTML = `
+        <div class="page-header"><h2>Dashboard Overview</h2>
+          <button id="clear-all-btn" class="btn btn-danger btn-sm">Clear All Data</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="label">Total Teams</div><div class="value accent">${stats.totalTeams}</div></div>
+          <div class="stat-card"><div class="label">Total Players</div><div class="value">${stats.totalPlayers}</div></div>
+          <div class="stat-card"><div class="label">Tournaments</div><div class="value">${stats.totalTournaments}</div></div>
+          <div class="stat-card"><div class="label">Total Games</div><div class="value">${stats.totalGames}</div></div>
+        </div>
+        <div class="card"><h3>Tournaments by Status</h3>
+          <table><thead><tr><th>Status</th><th>Count</th></tr></thead><tbody>
+            ${(stats.tournamentsByStatus || []).map(s => `<tr><td><span class="badge badge-${s.status}">${s.status}</span></td><td>${s.count}</td></tr>`).join('')}
+          </tbody></table>
+        </div>`;
+
+      document.getElementById('clear-all-btn').onclick = async () => {
+        if (!confirm('Delete ALL data? This removes all teams, players, tournaments, games, and events. Cannot be undone.')) return;
+        if (!confirm('Last chance - ALL data will be permanently deleted. Continue?')) return;
+        try {
+          await api('/admin/clear-all', { method: 'POST' });
+          alert('All data cleared.');
+          loadPage('overview');
+        } catch (e) { alert('Error: ' + e.message); }
+      };
+    }
+
+    // ─── TOURNAMENTS LIST ─────────────────────────────────
+
+    function getBaseName(name) {
+      return name.replace(/\s*-\s*(10U|12U|14U|15U|18U|Open)\s*$/i, '').trim();
+    }
+
+    const ageGroupOrder = ['10U', '12U', '14U', '15U', '18U', 'Open'];
+
+    function groupTournaments(list) {
+      const groups = new Map();
+      for (const t of list) {
+        const base = getBaseName(t.name);
+        if (!groups.has(base)) groups.set(base, []);
+        groups.get(base).push(t);
+      }
+      const result = [];
+      for (const [baseName, tournaments] of groups) {
+        tournaments.sort((a, b) => ageGroupOrder.indexOf(a.ageGroup || 'Open') - ageGroupOrder.indexOf(b.ageGroup || 'Open'));
+        const statusPriority = { live: 0, upcoming: 1, draft: 2, completed: 3 };
+        const primary = [...tournaments].sort((a, b) => (statusPriority[a.status] ?? 9) - (statusPriority[b.status] ?? 9))[0];
+        const statuses = [...new Set(tournaments.map(t => t.status))];
+        const ageGroups = tournaments.map(t => t.ageGroup).filter(Boolean);
+        const totalTeams = tournaments.reduce((sum, t) => sum + (t.registeredTeams || []).length, 0);
+        const totalCapacity = tournaments.reduce((sum, t) => sum + (t.teamCount || 0), 0);
+        result.push({ baseName, tournaments, primary, statuses, ageGroups, totalTeams, totalCapacity });
+      }
+      result.sort((a, b) => {
+        const sp = { live: 0, upcoming: 1, draft: 2, completed: 3 };
+        const aP = Math.min(...a.statuses.map(s => sp[s] ?? 9));
+        const bP = Math.min(...b.statuses.map(s => sp[s] ?? 9));
+        if (aP !== bP) return aP - bP;
+        return new Date(a.primary.startDate) - new Date(b.primary.startDate);
+      });
+      return result;
+    }
+
+    async function loadTournaments(el) {
+      const list = await api('/tournaments');
+      const groups = groupTournaments(list);
+
+      el.innerHTML = `
+        <div class="page-header"><h2>Tournaments</h2><button id="create-tournament-btn" class="btn btn-primary btn-sm">Create Tournament</button></div>
+        <div class="card"><table><thead><tr><th>Event</th><th>Date</th><th>Location</th><th>Teams</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+          ${groups.length === 0 ? '<tr><td colspan="6" style="text-align:center;color:#9CA3AF">No tournaments yet. Create one to get started.</td></tr>' : groups.map(g => `<tr>
+            <td><a href="#" class="view-tournament" data-id="${g.primary.id}" style="font-weight:700">${g.baseName}</a></td>
+            <td>${new Date(g.primary.startDate).toLocaleDateString()}</td>
+            <td>${g.primary.location || '-'}</td>
+            <td>${g.totalTeams}/${g.totalCapacity}</td>
+            <td>${g.statuses.map(s => '<span class="badge badge-' + s + '" style="margin-right:4px">' + s + '</span>').join('')}</td>
+            <td class="flex gap-2">
+              <button class="btn btn-primary btn-sm view-tournament" data-id="${g.primary.id}">Manage</button>
+              ${g.tournaments.length === 1 ? '<button class="btn btn-danger btn-sm delete-tournament" data-id="' + g.primary.id + '" data-name="' + g.baseName + '">Delete</button>' : '<button class="btn btn-danger btn-sm delete-event-group" data-ids=\'' + JSON.stringify(g.tournaments.map(t => t.id)) + '\' data-name="' + g.baseName + '">Delete All</button>'}
+            </td>
+          </tr>`).join('')}
+        </tbody></table></div>`;
+
+      document.getElementById('create-tournament-btn').onclick = () => showCreateTournamentModal();
+      document.querySelectorAll('.view-tournament').forEach(btn => {
+        btn.onclick = (e) => { e.preventDefault(); viewingTournamentId = btn.dataset.id; currentPage = 'tournament-detail'; loadPage('tournament-detail'); };
+      });
+      document.querySelectorAll('.delete-tournament').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Delete "' + btn.dataset.name + '"? All games will be deleted too.')) return;
+          await api('/tournaments/' + btn.dataset.id, { method: 'DELETE' });
+          loadPage('tournaments');
+        };
+      });
+      document.querySelectorAll('.delete-event-group').forEach(btn => {
+        btn.onclick = async () => {
+          const ids = JSON.parse(btn.dataset.ids);
+          if (!confirm('Delete all ' + ids.length + ' age group divisions of "' + btn.dataset.name + '"? All games will be deleted too.')) return;
+          for (const id of ids) { await api('/tournaments/' + id, { method: 'DELETE' }); }
+          loadPage('tournaments');
+        };
+      });
+    }
+
+    function showCreateTournamentModal() {
+      const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal">
+        <h3>Create Tournament</h3>
+        <div class="form-group"><label>Name</label><input id="t-name"></div>
+        <div class="form-group"><label>Description</label><textarea id="t-desc" rows="2"></textarea></div>
+        <div class="form-group"><label>Location</label><input id="t-location"></div>
+        <div class="form-group"><label>Start Date</label><input id="t-start" type="date"></div>
+        <div class="form-group"><label>End Date</label><input id="t-end" type="date"></div>
+        <div class="form-group">
+          <label>Age Groups</label>
+          <p style="font-size:12px;color:#9CA3AF;margin:0 0 6px">Select one or more. A separate tournament will be created for each age group.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="t-age-group" value="10U"> 10U</label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="t-age-group" value="12U"> 12U</label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="t-age-group" value="14U"> 14U</label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="t-age-group" value="15U"> 15U</label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="t-age-group" value="18U"> 18U</label>
+            <label style="display:flex;align-items:center;gap:4px;cursor:pointer"><input type="checkbox" class="t-age-group" value="Open"> Open</label>
+          </div>
+        </div>
+        <div class="form-group"><label>Team Count (per age group)</label><input id="t-teams" type="number" value="8"></div>
+        <div class="form-group"><label>Pool Play Games Per Team</label><input id="t-pool" type="number" value="3"></div>
+        <div class="form-group"><label>Entry Fee ($)</label><input id="t-fee" type="number" value="0"></div>
+        <div class="form-group"><label>Prize Pool ($)</label><input id="t-prize" type="number" value="0"></div>
+        <div id="t-error" class="error-msg hidden"></div>
+        <div class="flex gap-2 mt-4"><button id="t-save" class="btn btn-primary">Create</button><button id="t-cancel" class="btn btn-outline">Cancel</button></div>
+      </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('t-cancel').onclick = () => overlay.remove();
+      overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+      document.getElementById('t-save').onclick = async () => {
+        try {
+          const selectedAgeGroups = Array.from(document.querySelectorAll('.t-age-group:checked')).map(cb => cb.value);
+          const baseName = document.getElementById('t-name').value;
+          const baseBody = {
+            description: document.getElementById('t-desc').value,
+            location: document.getElementById('t-location').value,
+            startDate: document.getElementById('t-start').value,
+            endDate: document.getElementById('t-end').value || undefined,
+            teamCount: parseInt(document.getElementById('t-teams').value) || 8,
+            poolPlayGames: parseInt(document.getElementById('t-pool').value) || 3,
+            entryFee: parseFloat(document.getElementById('t-fee').value) || 0,
+            prizePool: parseFloat(document.getElementById('t-prize').value) || 0,
+          };
+          if (selectedAgeGroups.length > 1) {
+            for (const ag of selectedAgeGroups) {
+              await api('/tournaments', { method: 'POST', body: { ...baseBody, name: baseName + ' - ' + ag, ageGroup: ag }});
+            }
+          } else {
+            await api('/tournaments', { method: 'POST', body: { ...baseBody, name: baseName, ageGroup: selectedAgeGroups[0] || null }});
+          }
+          overlay.remove(); loadPage('tournaments');
+        } catch (e) { const err = document.getElementById('t-error'); err.textContent = e.message; err.classList.remove('hidden'); }
+      };
+    }
+
+    // ─── TOURNAMENT DETAIL VIEW ────────────────────────────
+
+    async function loadTournamentDetail(el) {
+      if (!viewingTournamentId) { currentPage = 'tournaments'; loadPage('tournaments'); return; }
+      await refreshTeamsCache();
+      const t = await api('/tournaments/' + viewingTournamentId);
+      const tGames = await api('/games?tournamentId=' + viewingTournamentId);
+
+      let siblings = [];
+      try { siblings = await api('/tournaments/' + viewingTournamentId + '/siblings'); } catch {}
+      const hasSiblings = siblings.length > 1;
+      const baseName = getBaseName(t.name);
+
+      const poolPlayGames = tGames.filter(g => (g.roundName || '').toLowerCase() === 'pool play');
+      const bracketGames = tGames.filter(g => (g.roundName || '').toLowerCase() !== 'pool play');
+
+      const regTeams = (t.registeredTeams || []).map(id => teamsById[id]).filter(Boolean);
+      const availableTeams = allTeamsCache.filter(tm => !(t.registeredTeams || []).includes(tm.id));
+      const allFieldsList = t.fields || [];
+      currentFieldsById = {};
+      allFieldsList.forEach(f => { currentFieldsById[f.id] = f.name; });
+
+      const hasLiveGames = tGames.some(g => g.status === 'live');
+
+      el.innerHTML = `
+        <button class="back-btn" id="back-to-list">&larr; Back to Tournaments</button>
+        <div class="page-header">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <h2>${baseName}</h2>
+            ${hasSiblings ? `<select id="age-group-select" style="padding:6px 12px;border:1px solid #E5E7EB;border-radius:8px;font-size:14px;font-weight:600;background:#6366F1;color:#fff;cursor:pointer">
+              ${siblings.map(s => `<option value="${s.id}" ${s.id === t.id ? 'selected' : ''}>${s.ageGroup || 'No Age Group'}</option>`).join('')}
+            </select>` : (t.ageGroup ? '<span class="badge" style="background:#6366F1;color:#fff">' + t.ageGroup + '</span>' : '')}
+            <span class="badge badge-${t.status}">${t.status}</span>
+            ${hasLiveGames ? '<span class="live-indicator"><span class="live-dot"></span><span class="auto-refresh-label">Auto-refreshing</span></span>' : ''}
+          </div>
+          <div class="flex gap-2 items-center">
+            ${hasSiblings && siblings.some(s => s.status === 'draft' || s.status === 'upcoming') ? '<button class="btn btn-success btn-sm" id="go-live-btn">&#9654; Go Live (All Divisions)</button>' : (!hasSiblings && (t.status === 'draft' || t.status === 'upcoming') ? '<button class="btn btn-success btn-sm" id="go-live-btn">&#9654; Go Live</button>' : '')}
+            ${hasSiblings && siblings.some(s => s.status === 'live') ? '<button class="btn btn-primary btn-sm" id="complete-btn">&#10003; Complete (All Divisions)</button>' : (!hasSiblings && t.status === 'live' ? '<button class="btn btn-primary btn-sm" id="complete-btn">&#10003; Tournament Complete</button>' : '')}
+            <button class="btn btn-outline btn-sm" id="edit-tournament-btn">Edit Tournament</button>
+          </div>
+        </div>
+
+        <!-- Section 1: Tournament Info -->
+        <div class="stats-grid">
+          <div class="stat-card"><div class="label">Start Date</div><div class="value" style="font-size:16px">${new Date(t.startDate).toLocaleDateString()}</div></div>
+          <div class="stat-card"><div class="label">Location</div><div class="value" style="font-size:16px">${t.location || '-'}</div></div>
+          <div class="stat-card"><div class="label">Teams</div><div class="value accent">${regTeams.length}/${t.teamCount}</div></div>
+          <div class="stat-card"><div class="label">Pool Play Games</div><div class="value">${t.poolPlayGames || 3}</div></div>
+          <div class="stat-card"><div class="label">Total Games</div><div class="value">${tGames.length}</div></div>
+        </div>
+
+        <!-- Section 2: Registered Teams -->
+        <div class="card">
+          <div class="section-header">
+            <h3>Registered Teams (${regTeams.length}) <span class="collapse-toggle">▼</span></h3>
+            <div class="flex gap-2 items-center" onclick="event.stopPropagation()">
+              <select id="add-team-select" style="padding:6px 10px;border:1px solid #E5E7EB;border-radius:8px;font-size:13px;min-width:180px">
+                <option value="">-- Add a team --</option>
+                ${availableTeams.map(tm => `<option value="${tm.id}">${tm.name} (${tm.abbreviation})</option>`).join('')}
+              </select>
+              <button id="add-team-btn" class="btn btn-success btn-sm">Add</button>
+            </div>
+          </div>
+          <div class="collapsible-content">
+          ${regTeams.length === 0 ? '<p style="color:#9CA3AF;font-size:13px">No teams registered yet. Add teams above.</p>' : `
+          <table><thead><tr><th>Team</th><th>Abbreviation</th><th>ELO</th><th>Record</th><th></th></tr></thead><tbody>
+            ${regTeams.map(tm => `<tr>
+              <td style="font-weight:600">${tm.name}</td>
+              <td>${tm.abbreviation}</td>
+              <td>${Math.round(tm.elo)}</td>
+              <td>${tm.wins}W-${tm.losses}L</td>
+              <td><button class="btn btn-danger btn-sm remove-team-btn" data-id="${tm.id}">Remove</button></td>
+            </tr>`).join('')}
+          </tbody></table>`}
+          </div>
+        </div>
+
+        <!-- Section 2b: Fields Management -->
+        <div class="card">
+          <div class="section-header">
+            <h3>Fields (${allFieldsList.length}) <span class="collapse-toggle">▼</span></h3>
+            <div class="flex gap-2 items-center" onclick="event.stopPropagation()">
+              <input id="add-field-input" type="text" placeholder="Field name" style="padding:6px 10px;border:1px solid #E5E7EB;border-radius:8px;font-size:13px;width:160px">
+              <button id="add-field-btn" class="btn btn-success btn-sm">Add Field</button>
+            </div>
+          </div>
+          <div class="collapsible-content">
+          ${allFieldsList.length === 0 ? '<p style="color:#9CA3AF;font-size:13px">No fields yet. Add fields above.</p>' : `
+          <table><thead><tr><th>Field Name</th><th></th></tr></thead><tbody>
+            ${allFieldsList.map(f => `<tr>
+              <td style="font-weight:600">${f.name}</td>
+              <td><button class="btn btn-danger btn-sm remove-field-btn" data-id="${f.id}">Remove</button></td>
+            </tr>`).join('')}
+          </tbody></table>`}
+          </div>
+        </div>
+
+        <!-- Section 3: Pool Play -->
+        <div class="card">
+          <div class="section-header">
+            <h3>Pool Play <span class="collapse-toggle">▼</span></h3>
+            <div class="flex gap-2" onclick="event.stopPropagation()">
+              <button id="gen-pool-play-btn" class="btn btn-primary btn-sm">${poolPlayGames.length > 0 ? 'Regenerate Pool Play' : 'Generate Pool Play Schedule'}</button>
+            </div>
+          </div>
+          <div class="collapsible-content" id="pool-play-games">
+            ${poolPlayGames.length === 0 ? '<p style="color:#9CA3AF;font-size:13px">No pool play games yet. Add teams and generate the schedule.</p>' : `
+              <div class="game-cards-grid">${poolPlayGames.map(g => renderGameCard(g)).join('')}</div>
+            `}
+          </div>
+        </div>
+
+        <!-- Section 3b: Standings -->
+        <div class="card">
+          <div class="section-header">
+            <h3>Standings <span class="collapse-toggle">▼</span></h3>
+            <button id="refresh-standings-btn" class="btn btn-outline btn-sm" onclick="event.stopPropagation()">Refresh</button>
+          </div>
+          <div class="collapsible-content" id="standings-table">
+            <p style="color:#9CA3AF;font-size:13px">Loading standings...</p>
+          </div>
+        </div>
+
+        <!-- Section 4: Bracket Play -->
+        <div class="card">
+          <div class="section-header">
+            <h3>Bracket Play <span class="collapse-toggle">▼</span></h3>
+            <div class="flex gap-2" onclick="event.stopPropagation()">
+              ${bracketGames.length > 0 ? `
+                <button id="reset-bracket-btn" class="btn btn-outline btn-sm" style="color:#EF4444;border-color:#EF4444">Reset Bracket</button>
+              ` : `
+                <button id="gen-bracket-btn" class="btn btn-primary btn-sm">Generate Bracket</button>
+              `}
+            </div>
+          </div>
+          <div class="collapsible-content" id="bracket-section">
+            ${bracketGames.length === 0 ? '<p style="color:#9CA3AF;font-size:13px">No bracket games yet. Register teams and generate the bracket.</p>' : renderBracketVisual(bracketGames, t)}
+          </div>
+        </div>
+
+        <!-- Section 5: All Games -->
+        <div class="card">
+          <div class="section-header">
+            <h3>All Games (${tGames.length}) <span class="collapse-toggle">▼</span></h3>
+          </div>
+          <div class="collapsible-content">
+          ${tGames.length === 0 ? '<p style="color:#9CA3AF;font-size:13px">No games yet.</p>' : `
+          <table><thead><tr><th>Round</th><th>Team A</th><th>Score</th><th>Team B</th><th>Status</th><th>Field</th><th>Actions</th></tr></thead><tbody>
+            ${sortGamesLiveFirst(tGames).map(g => `<tr>
+              <td>${g.roundName || 'Round ' + g.roundNumber}</td>
+              <td style="font-weight:600">${teamName(g.teamAId)}</td>
+              <td style="font-weight:700;text-align:center">${g.status === 'scheduled' ? '-' : (g.scoreA ?? 0) + ' - ' + (g.scoreB ?? 0)}</td>
+              <td style="font-weight:600">${teamName(g.teamBId)}</td>
+              <td><span class="badge badge-${g.status}">${g.status}</span></td>
+              <td style="font-size:13px;color:#6B7280">${g.fieldId && currentFieldsById[g.fieldId] ? currentFieldsById[g.fieldId] : '-'}</td>
+              <td class="flex gap-2">
+                ${g.status === 'scheduled' && g.teamAId && g.teamBId ? `<button class="btn btn-primary btn-sm start-game-tbl" data-id="${g.id}">Start</button>` : ''}
+                ${g.status === 'live' ? `<button class="btn btn-primary btn-sm score-game-tbl" data-id="${g.id}">Score</button><button class="btn btn-success btn-sm finalize-game-tbl" data-id="${g.id}">Finalize</button>` : ''}
+                ${g.status === 'final' ? `<button class="btn btn-outline btn-sm edit-score-tbl" data-id="${g.id}">Edit Score</button><button class="btn btn-warning btn-sm stats-game-tbl" data-id="${g.id}">Stats</button>` : ''}
+                ${g.status === 'locked' ? `<button class="btn btn-warning btn-sm stats-game-tbl" data-id="${g.id}">Stats</button>` : ''}
+                <button class="btn btn-outline btn-sm edit-game-tbl" data-id="${g.id}">Edit</button>
+                ${g.status !== 'locked' && g.status !== 'final' ? `<button class="btn btn-danger btn-sm delete-game-tbl" data-id="${g.id}">Del</button>` : ''}
+              </td>
+            </tr>`).join('')}
+          </tbody></table>`}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('back-to-list').onclick = () => { viewingTournamentId = null; currentPage = 'tournaments'; loadPage('tournaments'); };
+      const ageSelect = document.getElementById('age-group-select');
+      if (ageSelect) {
+        ageSelect.onchange = () => { viewingTournamentId = ageSelect.value; loadTournamentDetail(el); };
+      }
+      document.getElementById('edit-tournament-btn').onclick = () => showEditTournamentModal(t);
+
+      const goLiveBtn = document.getElementById('go-live-btn');
+      if (goLiveBtn) {
+        goLiveBtn.onclick = async () => {
+          const targets = hasSiblings ? siblings.filter(s => s.status === 'draft' || s.status === 'upcoming') : [t];
+          const msg = targets.length > 1
+            ? 'Set all ' + targets.length + ' divisions of "' + baseName + '" to LIVE?'
+            : 'Set this tournament to LIVE?';
+          if (!confirm(msg)) return;
+          try {
+            for (const s of targets) {
+              await api('/tournaments/' + s.id, { method: 'PUT', body: { status: 'live' } });
+            }
+            loadTournamentDetail(el);
+          } catch (e) { alert(e.message); }
+        };
+      }
+
+      const completeBtn = document.getElementById('complete-btn');
+      if (completeBtn) {
+        completeBtn.onclick = async () => {
+          const targets = hasSiblings ? siblings.filter(s => s.status === 'live') : [t];
+          const msg = targets.length > 1
+            ? 'Mark all ' + targets.length + ' divisions of "' + baseName + '" as COMPLETE?'
+            : 'Mark this tournament as COMPLETE?';
+          if (!confirm(msg)) return;
+          try {
+            for (const s of targets) {
+              await api('/tournaments/' + s.id, { method: 'PUT', body: { status: 'completed' } });
+            }
+            loadTournamentDetail(el);
+          } catch (e) { alert(e.message); }
+        };
+      }
+
+      document.getElementById('add-team-btn').onclick = async () => {
+        const sel = document.getElementById('add-team-select');
+        if (!sel.value) return;
+        try {
+          await api('/tournaments/' + t.id + '/teams', { method: 'POST', body: { teamId: sel.value } });
+          loadTournamentDetail(el);
+        } catch (e) { alert(e.message); }
+      };
+
+      document.querySelectorAll('.remove-team-btn').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Remove this team from the tournament?')) return;
+          try {
+            await api('/tournaments/' + t.id + '/teams/' + btn.dataset.id, { method: 'DELETE' });
+            loadTournamentDetail(el);
+          } catch (e) { alert(e.message); }
+        };
+      });
+
+      document.getElementById('add-field-btn').onclick = async () => {
+        const input = document.getElementById('add-field-input');
+        const name = input.value.trim();
+        if (!name) return;
+        try {
+          await api('/tournaments/' + t.id + '/fields', { method: 'POST', body: { name } });
+          loadTournamentDetail(el);
+        } catch (e) { alert(e.message); }
+      };
+
+      document.querySelectorAll('.remove-field-btn').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Remove this field?')) return;
+          try {
+            await api('/tournaments/' + t.id + '/fields/' + btn.dataset.id, { method: 'DELETE' });
+            loadTournamentDetail(el);
+          } catch (e) { alert(e.message); }
+        };
+      });
+
+      document.getElementById('gen-pool-play-btn').onclick = async () => {
+        if (regTeams.length < 2) { alert('Need at least 2 registered teams.'); return; }
+        if (poolPlayGames.length > 0 && !confirm('This will regenerate all pool play games. Existing pool play games will be replaced.')) return;
+        try {
+          const result = await api('/tournaments/' + t.id + '/pool-play', { method: 'POST' });
+          alert('Pool play generated: ' + result.gamesCreated + ' games!');
+          loadTournamentDetail(el);
+        } catch (e) { alert(e.message); }
+      };
+
+      let cachedStandings = [];
+      async function loadStandings() {
+        try {
+          const standings = await api('/tournaments/' + t.id + '/standings');
+          cachedStandings = standings;
+          const tableDiv = document.getElementById('standings-table');
+          if (!standings || standings.length === 0) {
+            tableDiv.innerHTML = '<p style="color:#9CA3AF;font-size:13px">No standings yet. Finalize some pool play games first.</p>';
+            return;
+          }
+          tableDiv.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead><tr style="border-bottom:2px solid #E5E7EB;text-align:left">
+              <th style="padding:8px 6px;width:40px">#</th>
+              <th style="padding:8px 6px">Team</th>
+              <th style="padding:8px 6px;text-align:center">W</th>
+              <th style="padding:8px 6px;text-align:center">L</th>
+              <th style="padding:8px 6px;text-align:center">T</th>
+              <th style="padding:8px 6px;text-align:center">Win%</th>
+              <th style="padding:8px 6px;text-align:center">PF</th>
+              <th style="padding:8px 6px;text-align:center">PA</th>
+              <th style="padding:8px 6px;text-align:center">PD</th>
+            </tr></thead>
+            <tbody>${standings.map((s, i) => {
+              const gp = s.wins + s.losses + s.ties;
+              const winPct = gp > 0 ? (s.wins / gp * 100).toFixed(0) : '0';
+              return `<tr style="border-bottom:1px solid #F3F4F6${i < 3 ? ';background:#F0FDF4' : ''}">
+                <td style="padding:8px 6px;font-weight:700;color:#6B7280">${i + 1}</td>
+                <td style="padding:8px 6px;font-weight:600">${teamName(s.teamId)}</td>
+                <td style="padding:8px 6px;text-align:center;font-weight:600;color:#22C55E">${s.wins}</td>
+                <td style="padding:8px 6px;text-align:center;color:#EF4444">${s.losses}</td>
+                <td style="padding:8px 6px;text-align:center;color:#F59E0B">${s.ties}</td>
+                <td style="padding:8px 6px;text-align:center">${winPct}%</td>
+                <td style="padding:8px 6px;text-align:center">${s.pointsFor}</td>
+                <td style="padding:8px 6px;text-align:center">${s.pointsAgainst}</td>
+                <td style="padding:8px 6px;text-align:center;color:${s.pointDifferential >= 0 ? '#22C55E' : '#EF4444'}">${s.pointDifferential > 0 ? '+' : ''}${s.pointDifferential}</td>
+              </tr>`;
+            }).join('')}</tbody>
+          </table>`;
+        } catch (e) {
+          document.getElementById('standings-table').innerHTML = '<p style="color:#EF4444;font-size:13px">Failed to load standings.</p>';
+        }
+      }
+      loadStandings();
+      document.getElementById('refresh-standings-btn').onclick = loadStandings;
+
+      const genBracketBtn = document.getElementById('gen-bracket-btn');
+      if (genBracketBtn) {
+        genBracketBtn.onclick = () => showGenerateBracketModal(t, regTeams, el, cachedStandings);
+      }
+
+      const resetBracketBtn = document.getElementById('reset-bracket-btn');
+      if (resetBracketBtn) {
+        resetBracketBtn.onclick = async () => {
+          if (!confirm('Reset the entire bracket? All bracket games will be deleted.')) return;
+          for (const g of bracketGames) {
+            try { await api('/games/' + g.id, { method: 'DELETE' }); } catch {}
+          }
+          loadTournamentDetail(el);
+        };
+      }
+
+      bindGameCardActions(el);
+      bindTableGameActions(el, tGames, regTeams, allFieldsList);
+
+      el.querySelectorAll('.section-header').forEach(header => {
+        header.addEventListener('click', function() {
+          const content = this.nextElementSibling;
+          if (!content || !content.classList.contains('collapsible-content')) return;
+          content.classList.toggle('collapsed');
+          const toggle = this.querySelector('.collapse-toggle');
+          if (toggle) toggle.classList.toggle('collapsed');
+        });
+      });
+
+      if (liveRefreshInterval) { clearInterval(liveRefreshInterval); liveRefreshInterval = null; }
+      if (hasLiveGames) {
+        liveRefreshInterval = setInterval(async () => {
+          try {
+            await loadTournamentDetail(document.getElementById('main-content'));
+          } catch {}
+        }, 5000);
+      }
+    }
+
+    function sortGamesLiveFirst(games) {
+      return [...games].sort((a, b) => {
+        const order = { live: 0, scheduled: 1, final: 2, locked: 3, cancelled: 4 };
+        return (order[a.status] ?? 5) - (order[b.status] ?? 5);
+      });
+    }
+
+    function renderGameCard(g) {
+      const tA = teamName(g.teamAId);
+      const tB = teamName(g.teamBId);
+      const isLive = g.status === 'live';
+      const isFinal = g.status === 'final' || g.status === 'locked';
+      const isScheduled = g.status === 'scheduled';
+
+      return `<div class="game-card${isLive ? ' live' : ''}" data-game-id="${g.id}">
+        <div class="game-header">
+          <span style="font-size:12px;color:#6B7280;font-weight:600">${g.roundName || 'Game'} #${g.matchNumber}</span>
+          <span class="badge badge-${g.status}">${g.status.toUpperCase()}</span>
+        </div>
+        ${g.fieldId && currentFieldsById[g.fieldId] ? '<div style="font-size:11px;color:#9CA3AF;margin-top:2px">📍 ' + currentFieldsById[g.fieldId] + '</div>' : ''}
+        <div class="game-teams">
+          <div class="game-team"><div class="name">${tA}</div></div>
+          <div class="game-score">
+            ${isLive ? `
+              <div class="score-team-block">
+                <span class="score-team-label">${tA}</span>
+                <span class="score-team-value">${g.scoreA ?? 0}</span>
+                <div class="score-btns-row">
+                  <button class="score-btn score-btn-plus gc-score" data-id="${g.id}" data-team="A" data-dir="6">+6</button>
+                  <button class="score-btn score-btn-plus gc-score" data-id="${g.id}" data-team="A" data-dir="3">+3</button>
+                  <button class="score-btn score-btn-plus gc-score" data-id="${g.id}" data-team="A" data-dir="2">+2</button>
+                  <button class="score-btn score-btn-plus gc-score" data-id="${g.id}" data-team="A" data-dir="1">+1</button>
+                  <button class="score-undo-btn gc-score" data-id="${g.id}" data-team="A" data-dir="-1" title="Undo 1">↩</button>
+                </div>
+              </div>
+              <div style="font-size:12px;color:#9CA3AF;margin:4px 0">vs</div>
+              <div class="score-team-block">
+                <span class="score-team-label">${tB}</span>
+                <span class="score-team-value">${g.scoreB ?? 0}</span>
+                <div class="score-btns-row">
+                  <button class="score-btn score-btn-plus gc-score" data-id="${g.id}" data-team="B" data-dir="6">+6</button>
+                  <button class="score-btn score-btn-plus gc-score" data-id="${g.id}" data-team="B" data-dir="3">+3</button>
+                  <button class="score-btn score-btn-plus gc-score" data-id="${g.id}" data-team="B" data-dir="2">+2</button>
+                  <button class="score-btn score-btn-plus gc-score" data-id="${g.id}" data-team="B" data-dir="1">+1</button>
+                  <button class="score-undo-btn gc-score" data-id="${g.id}" data-team="B" data-dir="-1" title="Undo 1">↩</button>
+                </div>
+              </div>
+            ` : isFinal ? `${g.scoreA ?? 0} - ${g.scoreB ?? 0}` : '-'}
+          </div>
+          <div class="game-team"><div class="name">${tB}</div></div>
+        </div>
+        <div class="game-actions">
+          ${isScheduled && g.teamAId && g.teamBId ? `<button class="btn btn-primary btn-sm gc-start" data-id="${g.id}">Start Game</button>` : ''}
+          ${isLive ? `<button class="btn btn-success btn-sm gc-finalize" data-id="${g.id}">End &amp; Finalize</button>` : ''}
+          ${isFinal && g.winnerId ? `<span style="font-size:12px;color:#22C55E;font-weight:600">Winner: ${teamName(g.winnerId)}</span>` : ''}
+          ${isFinal && !g.winnerId ? `<span style="font-size:12px;color:#F59E0B;font-weight:600">Tie</span>` : ''}
+          ${isFinal ? `<button class="btn btn-outline btn-sm gc-edit-score" data-id="${g.id}">Edit Score</button><button class="btn btn-warning btn-sm gc-stats" data-id="${g.id}">Stats</button>` : ''}
+        </div>
+      </div>`;
+    }
+
+    function bindGameCardActions(el) {
+      document.querySelectorAll('.gc-start').forEach(btn => {
+        btn.onclick = async () => {
+          try {
+            await api('/games/' + btn.dataset.id + '/score', { method: 'PUT', body: { scoreA: 0, scoreB: 0 } });
+            loadTournamentDetail(el);
+          } catch (e) { alert(e.message); }
+        };
+      });
+
+      document.querySelectorAll('.gc-score').forEach(btn => {
+        btn.onclick = async () => {
+          const gameId = btn.dataset.id;
+          const pts = parseInt(btn.dataset.dir);
+          const team = btn.dataset.team;
+          const allGames = await api('/games?tournamentId=' + viewingTournamentId);
+          const game = allGames.find(g => g.id === gameId);
+          if (!game) return;
+          let sA = game.scoreA ?? 0;
+          let sB = game.scoreB ?? 0;
+          if (team === 'A') sA = Math.max(0, sA + pts);
+          else sB = Math.max(0, sB + pts);
+          try {
+            await api('/games/' + gameId + '/score', { method: 'PUT', body: { scoreA: sA, scoreB: sB } });
+            loadTournamentDetail(el);
+          } catch (e) { alert(e.message); }
+        };
+      });
+
+      document.querySelectorAll('.gc-finalize').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Finalize this game? Winner advances, ELO updates.')) return;
+          try {
+            await api('/games/' + btn.dataset.id + '/finalize', { method: 'PUT' });
+            loadTournamentDetail(el);
+          } catch (e) { alert(e.message); }
+        };
+      });
+
+      document.querySelectorAll('.br-start-game').forEach(btn => {
+        btn.onclick = async () => {
+          try {
+            await api('/games/' + btn.dataset.id + '/score', { method: 'PUT', body: { scoreA: 0, scoreB: 0 } });
+            loadTournamentDetail(el);
+          } catch (e) { alert(e.message); }
+        };
+      });
+
+      document.querySelectorAll('.br-score-game').forEach(btn => {
+        btn.onclick = () => {
+          const gId = btn.dataset.id;
+          showQuickScoreModal(gId, el);
+        };
+      });
+
+      document.querySelectorAll('.br-finalize-game').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Finalize this game? Winner advances, ELO updates.')) return;
+          try {
+            await api('/games/' + btn.dataset.id + '/finalize', { method: 'PUT' });
+            loadTournamentDetail(el);
+          } catch (e) { alert(e.message); }
+        };
+      });
+
+      document.querySelectorAll('.gc-edit-score').forEach(btn => {
+        btn.onclick = () => showEditScoreModal(btn.dataset.id, el);
+      });
+
+      document.querySelectorAll('.gc-stats').forEach(btn => {
+        btn.onclick = () => showPlayerStatsModal(btn.dataset.id, () => loadTournamentDetail(el));
+      });
+
+      document.querySelectorAll('.br-stats-game').forEach(btn => {
+        btn.onclick = () => showPlayerStatsModal(btn.dataset.id, () => loadTournamentDetail(el));
+      });
+    }
+
+    function bindTableGameActions(el, tGames, regTeams, allFieldsList) {
+      document.querySelectorAll('.start-game-tbl').forEach(btn => {
+        btn.onclick = async () => {
+          try {
+            await api('/games/' + btn.dataset.id + '/score', { method: 'PUT', body: { scoreA: 0, scoreB: 0 } });
+            loadTournamentDetail(el);
+          } catch (e) { alert(e.message); }
+        };
+      });
+      document.querySelectorAll('.score-game-tbl').forEach(btn => {
+        btn.onclick = () => showQuickScoreModal(btn.dataset.id, el);
+      });
+      document.querySelectorAll('.finalize-game-tbl').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Finalize this game?')) return;
+          try {
+            await api('/games/' + btn.dataset.id + '/finalize', { method: 'PUT' });
+            loadTournamentDetail(el);
+          } catch (e) { alert(e.message); }
+        };
+      });
+      document.querySelectorAll('.edit-game-tbl').forEach(btn => {
+        btn.onclick = () => showEditGameModal(btn.dataset.id, tGames, regTeams, allFieldsList, el);
+      });
+      document.querySelectorAll('.delete-game-tbl').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Delete this game?')) return;
+          try {
+            await api('/games/' + btn.dataset.id, { method: 'DELETE' });
+            loadTournamentDetail(el);
+          } catch (e) { alert(e.message); }
+        };
+      });
+      document.querySelectorAll('.edit-score-tbl').forEach(btn => {
+        btn.onclick = () => showEditScoreModal(btn.dataset.id, el);
+      });
+      document.querySelectorAll('.stats-game-tbl').forEach(btn => {
+        btn.onclick = () => showPlayerStatsModal(btn.dataset.id, () => loadTournamentDetail(el));
+      });
+    }
+
+    function showEditGameModal(gameId, tGames, regTeams, fieldsList, el) {
+      const game = tGames.find(g => g.id === gameId);
+      if (!game) return;
+      const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+      const schedTime = game.scheduledTime ? new Date(game.scheduledTime).toISOString().slice(0,16) : '';
+      overlay.innerHTML = `<div class="modal" style="max-width:440px">
+        <h3>Edit Game</h3>
+        <p style="color:#6B7280;font-size:13px;margin-bottom:12px">${game.roundName || 'Round ' + game.roundNumber}</p>
+        <div class="form-group"><label>Team A</label><select id="eg-teamA">
+          <option value="">-- TBD --</option>
+          ${regTeams.map(t => '<option value="' + t.id + '"' + (game.teamAId === t.id ? ' selected' : '') + '>' + t.name + '</option>').join('')}
+        </select></div>
+        <div class="form-group"><label>Team B</label><select id="eg-teamB">
+          <option value="">-- TBD --</option>
+          ${regTeams.map(t => '<option value="' + t.id + '"' + (game.teamBId === t.id ? ' selected' : '') + '>' + t.name + '</option>').join('')}
+        </select></div>
+        <div class="form-group"><label>Field</label><select id="eg-field">
+          <option value="">-- None --</option>
+          ${fieldsList.map(f => '<option value="' + f.id + '"' + (game.fieldId === f.id ? ' selected' : '') + '>' + f.name + '</option>').join('')}
+        </select></div>
+        <div class="form-group"><label>Scheduled Time</label><input id="eg-time" type="datetime-local" value="${schedTime}"></div>
+        <div class="form-group"><label>Status</label><select id="eg-status">
+          ${['scheduled','live','final','locked','cancelled'].map(s => '<option value="' + s + '"' + (game.status === s ? ' selected' : '') + '>' + s + '</option>').join('')}
+        </select></div>
+        <div id="eg-error" class="error-msg hidden"></div>
+        <div class="flex gap-2 mt-4"><button id="eg-save" class="btn btn-primary">Save</button><button id="eg-cancel" class="btn btn-outline">Cancel</button></div>
+      </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('eg-cancel').onclick = () => overlay.remove();
+      overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+      document.getElementById('eg-save').onclick = async () => {
+        try {
+          await api('/games/' + gameId, { method: 'PUT', body: {
+            teamAId: document.getElementById('eg-teamA').value || null,
+            teamBId: document.getElementById('eg-teamB').value || null,
+            fieldId: document.getElementById('eg-field').value || null,
+            scheduledTime: document.getElementById('eg-time').value || null,
+            status: document.getElementById('eg-status').value,
+          }});
+          overlay.remove();
+          loadTournamentDetail(el);
+        } catch (e) {
+          const err = document.getElementById('eg-error');
+          err.textContent = e.message; err.classList.remove('hidden');
+        }
+      };
+    }
+
+    function showQuickScoreModal(gameId, el) {
+      const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal" style="max-width:380px"><h3>Update Score</h3><p style="color:#6B7280;font-size:13px">Loading...</p></div>`;
+      document.body.appendChild(overlay);
+      overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+      (async () => {
+        const allGames = await api('/games?tournamentId=' + viewingTournamentId);
+        const game = allGames.find(g => g.id === gameId);
+        if (!game) { overlay.remove(); return; }
+        const tA = teamName(game.teamAId);
+        const tB = teamName(game.teamBId);
+        let qsA = game.scoreA ?? 0;
+        let qsB = game.scoreB ?? 0;
+        function renderQsModal() {
+          overlay.querySelector('.modal').innerHTML = `
+            <h3 style="margin-bottom:16px">Update Score</h3>
+            <div style="display:flex;align-items:stretch;gap:20px;justify-content:center;margin-bottom:20px">
+              <div class="score-team-block" style="flex:1">
+                <span style="font-size:14px;font-weight:700">${tA}</span>
+                <span class="score-team-value" style="font-size:32px">${qsA}</span>
+                <div class="score-btns-row" style="gap:4px">
+                  <button class="score-btn score-btn-plus qs-btn" data-team="A" data-pts="6">+6</button>
+                  <button class="score-btn score-btn-plus qs-btn" data-team="A" data-pts="3">+3</button>
+                  <button class="score-btn score-btn-plus qs-btn" data-team="A" data-pts="2">+2</button>
+                  <button class="score-btn score-btn-plus qs-btn" data-team="A" data-pts="1">+1</button>
+                  <button class="score-undo-btn qs-btn" data-team="A" data-pts="-1" title="Undo 1">↩</button>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center"><span style="font-size:18px;font-weight:700;color:#6B7280">vs</span></div>
+              <div class="score-team-block" style="flex:1">
+                <span style="font-size:14px;font-weight:700">${tB}</span>
+                <span class="score-team-value" style="font-size:32px">${qsB}</span>
+                <div class="score-btns-row" style="gap:4px">
+                  <button class="score-btn score-btn-plus qs-btn" data-team="B" data-pts="6">+6</button>
+                  <button class="score-btn score-btn-plus qs-btn" data-team="B" data-pts="3">+3</button>
+                  <button class="score-btn score-btn-plus qs-btn" data-team="B" data-pts="2">+2</button>
+                  <button class="score-btn score-btn-plus qs-btn" data-team="B" data-pts="1">+1</button>
+                  <button class="score-undo-btn qs-btn" data-team="B" data-pts="-1" title="Undo 1">↩</button>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2"><button id="qs-save" class="btn btn-primary" style="flex:1">Save</button><button id="qs-cancel" class="btn btn-outline" style="flex:1">Cancel</button></div>`;
+          overlay.querySelectorAll('.qs-btn').forEach(b => {
+            b.onclick = () => {
+              const pts = parseInt(b.dataset.pts);
+              if (b.dataset.team === 'A') qsA = Math.max(0, qsA + pts);
+              else qsB = Math.max(0, qsB + pts);
+              renderQsModal();
+            };
+          });
+          document.getElementById('qs-cancel').onclick = () => overlay.remove();
+          document.getElementById('qs-save').onclick = async () => {
+            try {
+              await api('/games/' + gameId + '/score', { method: 'PUT', body: { scoreA: qsA, scoreB: qsB }});
+              overlay.remove();
+              loadTournamentDetail(el);
+            } catch (e) { alert(e.message); }
+          };
+        }
+        renderQsModal();
+      })();
+    }
+
+    function showEditScoreModal(gameId, el) {
+      const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal" style="max-width:420px"><h3>Edit Score</h3><p style="color:#6B7280;font-size:13px">Loading...</p></div>`;
+      document.body.appendChild(overlay);
+      overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+      (async () => {
+        const allGames = await api('/games?tournamentId=' + viewingTournamentId);
+        const game = allGames.find(g => g.id === gameId);
+        if (!game) { overlay.remove(); return; }
+        const tA = teamName(game.teamAId);
+        const tB = teamName(game.teamBId);
+        let esA = game.scoreA ?? 0;
+        let esB = game.scoreB ?? 0;
+        function renderEditModal() {
+          overlay.querySelector('.modal').innerHTML = `
+            <h3 style="margin-bottom:4px">Edit Final Score</h3>
+            <p style="color:#6B7280;font-size:12px;margin-bottom:16px">Change the score and save. The game will go back to live status so you can re-finalize it.</p>
+            <div style="display:flex;align-items:stretch;gap:20px;justify-content:center;margin-bottom:20px">
+              <div class="score-team-block" style="flex:1">
+                <span style="font-size:14px;font-weight:700">${tA}</span>
+                <input type="number" id="es-score-a" value="${esA}" min="0" style="width:80px;text-align:center;font-size:28px;font-weight:700;padding:8px;border:1px solid #E5E7EB;border-radius:8px" />
+                <div class="score-btns-row" style="gap:4px;margin-top:8px">
+                  <button class="score-btn score-btn-plus es-btn" data-team="A" data-pts="6">+6</button>
+                  <button class="score-btn score-btn-plus es-btn" data-team="A" data-pts="3">+3</button>
+                  <button class="score-btn score-btn-plus es-btn" data-team="A" data-pts="2">+2</button>
+                  <button class="score-btn score-btn-plus es-btn" data-team="A" data-pts="1">+1</button>
+                  <button class="score-undo-btn es-btn" data-team="A" data-pts="-1">↩</button>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center"><span style="font-size:18px;font-weight:700;color:#6B7280">vs</span></div>
+              <div class="score-team-block" style="flex:1">
+                <span style="font-size:14px;font-weight:700">${tB}</span>
+                <input type="number" id="es-score-b" value="${esB}" min="0" style="width:80px;text-align:center;font-size:28px;font-weight:700;padding:8px;border:1px solid #E5E7EB;border-radius:8px" />
+                <div class="score-btns-row" style="gap:4px;margin-top:8px">
+                  <button class="score-btn score-btn-plus es-btn" data-team="B" data-pts="6">+6</button>
+                  <button class="score-btn score-btn-plus es-btn" data-team="B" data-pts="3">+3</button>
+                  <button class="score-btn score-btn-plus es-btn" data-team="B" data-pts="2">+2</button>
+                  <button class="score-btn score-btn-plus es-btn" data-team="B" data-pts="1">+1</button>
+                  <button class="score-undo-btn es-btn" data-team="B" data-pts="-1">↩</button>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button id="es-save-finalize" class="btn btn-primary" style="flex:1">Save &amp; Re-Finalize</button>
+              <button id="es-save-live" class="btn btn-outline" style="flex:1">Save as Live</button>
+              <button id="es-cancel" class="btn btn-outline">Cancel</button>
+            </div>`;
+          document.getElementById('es-score-a').onchange = (e) => { esA = Math.max(0, parseInt(e.target.value) || 0); };
+          document.getElementById('es-score-b').onchange = (e) => { esB = Math.max(0, parseInt(e.target.value) || 0); };
+          overlay.querySelectorAll('.es-btn').forEach(b => {
+            b.onclick = () => {
+              const pts = parseInt(b.dataset.pts);
+              if (b.dataset.team === 'A') esA = Math.max(0, esA + pts);
+              else esB = Math.max(0, esB + pts);
+              renderEditModal();
+            };
+          });
+          document.getElementById('es-cancel').onclick = () => overlay.remove();
+          document.getElementById('es-save-live').onclick = async () => {
+            try {
+              await api('/games/' + gameId + '/score', { method: 'PUT', body: { scoreA: esA, scoreB: esB }});
+              overlay.remove();
+              loadTournamentDetail(el);
+            } catch (e) { alert(e.message); }
+          };
+          document.getElementById('es-save-finalize').onclick = async () => {
+            try {
+              await api('/games/' + gameId + '/score', { method: 'PUT', body: { scoreA: esA, scoreB: esB }});
+              await api('/games/' + gameId + '/finalize', { method: 'PUT' });
+              overlay.remove();
+              loadTournamentDetail(el);
+            } catch (e) { alert(e.message); }
+          };
+        }
+        renderEditModal();
+      })();
+    }
+
+    async function showPlayerStatsModal(gameId, onSave) {
+      const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal" style="max-width:700px;max-height:90vh;overflow-y:auto"><h3>Player Stats</h3><p style="color:#6B7280;font-size:13px">Loading rosters...</p></div>`;
+      document.body.appendChild(overlay);
+      overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+      try {
+        const game = await api('/games/' + gameId);
+        if (!game || !game.teamAId || !game.teamBId) { overlay.remove(); alert('Game data missing'); return; }
+        const existingStats = await api('/games/' + gameId + '/player-stats');
+
+        const rosterA = (game.teamA && game.teamA.roster) || [];
+        const rosterB = (game.teamB && game.teamB.roster) || [];
+        rosterA.sort((a, b) => a.number - b.number);
+        rosterB.sort((a, b) => a.number - b.number);
+        const tA = (game.teamA && game.teamA.name) || teamName(game.teamAId);
+        const tB = (game.teamB && game.teamB.name) || teamName(game.teamBId);
+
+        const statFields = [
+          { key: 'touchdowns', label: 'TD', short: 'TD' },
+          { key: 'interceptions', label: 'INT', short: 'INT' },
+        ];
+
+        const statsMap = {};
+        existingStats.forEach(s => {
+          statsMap[s.playerId] = s;
+        });
+
+        function renderStatsForm() {
+          const modal = overlay.querySelector('.modal');
+          let html = `<h3 style="margin-bottom:4px">Player Stats</h3>
+            <p style="font-size:12px;color:#6B7280;margin-bottom:16px">${tA} vs ${tB} &bull; Final: ${game.scoreA}-${game.scoreB}</p>`;
+
+          function renderTeamTable(teamPlayers, teamId, teamLabel) {
+            html += `<h4 style="font-size:14px;font-weight:700;margin:12px 0 8px;color:#4F6AF6">${teamLabel}</h4>`;
+            if (teamPlayers.length === 0) {
+              html += `<p style="font-size:12px;color:#9CA3AF;margin-bottom:12px">No players on roster</p>`;
+              return;
+            }
+            html += `<div style="overflow-x:auto;margin-bottom:16px"><table style="font-size:12px;min-width:100%">
+              <thead><tr><th style="padding:6px 4px">#</th><th style="padding:6px 4px">Player</th><th style="padding:6px 4px">Pos</th>`;
+            statFields.forEach(f => { html += `<th style="padding:6px 4px;text-align:center;min-width:50px">${f.short}</th>`; });
+            html += `<th style="padding:6px 4px;text-align:center">MVP</th></tr></thead><tbody>`;
+            teamPlayers.forEach(p => {
+              const existing = statsMap[p.id] || {};
+              html += `<tr data-player-id="${p.id}" data-team-id="${teamId}">
+                <td style="padding:4px;font-weight:700">${p.number}</td>
+                <td style="padding:4px;font-weight:600;white-space:nowrap">${p.name}</td>
+                <td style="padding:4px;color:#6B7280">${p.position}</td>`;
+              statFields.forEach(f => {
+                html += `<td style="padding:4px"><input type="number" class="ps-input" data-field="${f.key}" value="${existing[f.key] || 0}" min="0" style="width:50px;padding:4px;border:1px solid #E5E7EB;border-radius:4px;text-align:center;font-size:12px"></td>`;
+              });
+              html += `<td style="padding:4px;text-align:center"><input type="checkbox" class="ps-mvp" ${existing.isMvp ? 'checked' : ''}></td>`;
+              html += `</tr>`;
+            });
+            html += `</tbody></table></div>`;
+          }
+
+          renderTeamTable(rosterA, game.teamAId, tA);
+          renderTeamTable(rosterB, game.teamBId, tB);
+
+          html += `<div id="ps-error" class="error-msg hidden" style="margin-bottom:8px"></div>`;
+          html += `<div class="flex gap-2"><button id="ps-save" class="btn btn-primary" style="flex:1">Save Stats</button><button id="ps-cancel" class="btn btn-outline" style="flex:1">Cancel</button></div>`;
+          modal.innerHTML = html;
+
+          document.getElementById('ps-cancel').onclick = () => overlay.remove();
+          document.getElementById('ps-save').onclick = async () => {
+            const rows = modal.querySelectorAll('tr[data-player-id]');
+            const statsArr = [];
+            rows.forEach(row => {
+              const stat = {
+                playerId: row.dataset.playerId,
+                teamId: row.dataset.teamId,
+                isMvp: row.querySelector('.ps-mvp').checked,
+              };
+              statFields.forEach(f => {
+                const inp = row.querySelector(`input[data-field="${f.key}"]`);
+                stat[f.key] = parseInt(inp.value) || 0;
+              });
+              statsArr.push(stat);
+            });
+
+            try {
+              document.getElementById('ps-save').disabled = true;
+              document.getElementById('ps-save').textContent = 'Saving...';
+              await api('/games/' + gameId + '/player-stats', { method: 'POST', body: { stats: statsArr } });
+              overlay.remove();
+              if (onSave) onSave();
+            } catch (e) {
+              const err = document.getElementById('ps-error');
+              err.textContent = e.message;
+              err.classList.remove('hidden');
+              document.getElementById('ps-save').disabled = false;
+              document.getElementById('ps-save').textContent = 'Save Stats';
+            }
+          };
+        }
+
+        renderStatsForm();
+      } catch (err) {
+        overlay.querySelector('.modal').innerHTML = `<h3>Error</h3><p style="color:#E8272C">${err.message}</p><button class="btn btn-outline mt-4" onclick="this.closest('.modal-overlay').remove()">Close</button>`;
+      }
+    }
+
+    function showEditTournamentModal(t) {
+      const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal">
+        <h3>Edit Tournament</h3>
+        <div class="form-group"><label>Name</label><input id="te-name" value="${t.name}"></div>
+        <div class="form-group"><label>Status</label><select id="te-status">
+          ${['draft','upcoming','live','completed','cancelled'].map(s => `<option ${t.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+        </select></div>
+        <div class="form-group"><label>Description</label><textarea id="te-desc" rows="2">${t.description || ''}</textarea></div>
+        <div class="form-group"><label>Location</label><input id="te-location" value="${t.location || ''}"></div>
+        <div class="form-group"><label>Start Date</label><input id="te-start" type="date" value="${t.startDate ? new Date(t.startDate).toISOString().split('T')[0] : ''}"></div>
+        <div class="form-group"><label>Team Count</label><input id="te-teams" type="number" value="${t.teamCount || 8}"></div>
+        <div class="form-group"><label>Pool Play Games Per Team</label><input id="te-pool" type="number" value="${t.poolPlayGames || 3}"></div>
+        <div id="te-error" class="error-msg hidden"></div>
+        <div class="flex gap-2 mt-4"><button id="te-save" class="btn btn-primary">Save</button><button id="te-cancel" class="btn btn-outline">Cancel</button></div>
+      </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('te-cancel').onclick = () => overlay.remove();
+      overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+      document.getElementById('te-save').onclick = async () => {
+        try {
+          await api('/tournaments/' + t.id, { method: 'PUT', body: {
+            name: document.getElementById('te-name').value,
+            status: document.getElementById('te-status').value,
+            description: document.getElementById('te-desc').value,
+            location: document.getElementById('te-location').value,
+            startDate: document.getElementById('te-start').value || undefined,
+            teamCount: parseInt(document.getElementById('te-teams').value) || 8,
+            poolPlayGames: parseInt(document.getElementById('te-pool').value) || 3,
+          }});
+          overlay.remove();
+          loadTournamentDetail(document.getElementById('main-content'));
+        } catch (e) { const err = document.getElementById('te-error'); err.textContent = e.message; err.classList.remove('hidden'); }
+      };
+    }
+
+    function showGenerateBracketModal(t, regTeams, el, standings) {
+      const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal" style="max-width:540px">
+        <h3>Generate Bracket</h3>
+        <p style="color:#6B7280;font-size:13px;margin-bottom:16px">${standings && standings.length > 0 ? 'Seeds auto-filled from standings. Adjust if needed.' : 'Assign teams to seeded positions.'} For >8 teams: extra seeds play Wildcard round, top 8 go to Quarterfinals.</p>
+        <div id="br-slots" style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto"></div>
+        <div style="margin-top:12px"><button id="br-add-slot" class="btn btn-outline btn-sm">+ Add Seed Slot</button></div>
+        <div id="br-error" class="error-msg hidden" style="margin-top:12px"></div>
+        <div class="flex gap-2 mt-4"><button id="br-create" class="btn btn-primary">Create Bracket</button><button id="br-cancel" class="btn btn-outline">Cancel</button></div>
+      </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('br-cancel').onclick = () => overlay.remove();
+      overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+      const slotsDiv = document.getElementById('br-slots');
+      function addSlot(preselected, standingsInfo) {
+        const idx = slotsDiv.children.length + 1;
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px';
+        const infoTag = standingsInfo ? `<span style="font-size:11px;color:#6B7280;min-width:70px">${standingsInfo}</span>` : '';
+        row.innerHTML = `
+          <span style="font-size:12px;font-weight:700;color:#6B7280;min-width:40px">#${idx}</span>
+          <select class="br-slot-select" style="flex:1;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px;font-size:13px">
+            <option value="">-- Empty Slot --</option>
+            ${regTeams.map(tm => `<option value="${tm.id}" ${preselected === tm.id ? 'selected' : ''}>${tm.name} (${tm.abbreviation})</option>`).join('')}
+          </select>
+          ${infoTag}
+          <button class="btn btn-outline btn-sm br-remove-slot" style="padding:4px 8px;font-size:11px">X</button>`;
+        slotsDiv.appendChild(row);
+        row.querySelector('.br-remove-slot').onclick = () => { row.remove(); Array.from(slotsDiv.children).forEach((r, i) => r.querySelector('span').textContent = '#' + (i + 1)); };
+      }
+      const seedOrder = standings && standings.length > 0
+        ? standings.map(s => ({ id: s.teamId, info: `${s.wins}-${s.losses}-${s.ties}` }))
+        : [...regTeams].sort((a, b) => (b.elo || 1200) - (a.elo || 1200)).map(tm => ({ id: tm.id, info: '' }));
+      const defaultCount = Math.max(seedOrder.length, 8);
+      for (let i = 0; i < defaultCount; i++) addSlot(seedOrder[i]?.id || '', seedOrder[i]?.info || '');
+      document.getElementById('br-add-slot').onclick = () => addSlot('', '');
+
+      document.getElementById('br-create').onclick = async () => {
+        const selects = document.querySelectorAll('.br-slot-select');
+        const slots = [];
+        selects.forEach(s => slots.push({ teamId: s.value || null }));
+        if (slots.filter(s => s.teamId).length < 2) {
+          const err = document.getElementById('br-error');
+          err.textContent = 'At least 2 teams needed.';
+          err.classList.remove('hidden');
+          return;
+        }
+        if (!confirm('Create bracket? This will generate elimination games.')) return;
+        try {
+          const result = await api('/tournaments/' + t.id + '/bracket', { method: 'POST', body: { slots } });
+          alert('Bracket created with ' + result.gamesCreated + ' games!');
+          overlay.remove();
+          loadTournamentDetail(el);
+        } catch (e) {
+          const err = document.getElementById('br-error');
+          err.textContent = e.message;
+          err.classList.remove('hidden');
+        }
+      };
+    }
+
+    function renderBracketVisual(bracketGames, t) {
+      const roundOrder = { 'First Round': 0, 'Wildcard': 1, 'Round of 16': 1.5, 'Quarterfinal': 2, 'Semifinal': 3, 'Championship': 4 };
+      const roundsMap = {};
+      bracketGames.forEach(g => {
+        const rn = g.roundName || 'Round ' + g.roundNumber;
+        if (!roundsMap[rn]) roundsMap[rn] = { name: rn, order: roundOrder[rn] || g.roundNumber, matches: [] };
+        roundsMap[rn].matches.push(g);
+      });
+      const rounds = Object.values(roundsMap).sort((a, b) => a.order - b.order);
+
+      const champion = bracketGames.find(g => {
+        const rn = (g.roundName || '').toLowerCase();
+        return (rn.includes('championship') || rn === 'final' || rn === 'finals') && g.winnerId;
+      });
+      const champTeam = champion ? teamsById[champion.winnerId] : null;
+
+      let html = '';
+      if (champTeam) {
+        html += `<div style="margin-bottom:16px;padding:16px;background:linear-gradient(135deg,#F5E64218,#F5E64208);border-radius:12px;border:1px solid #F5E64240;display:flex;align-items:center;gap:12px">
+          <span style="font-size:28px">&#127942;</span>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#B8860B;letter-spacing:0.5px;text-transform:uppercase">Champion</div>
+            <div style="font-size:18px;font-weight:700;color:#1F2937">${champTeam.name}</div>
+          </div>
+        </div>`;
+      }
+
+      html += `<div class="bracket-container">`;
+      rounds.forEach((r, ri) => {
+        html += `<div class="bracket-round">
+          <div class="bracket-round-title">${r.name}</div>`;
+        r.matches.forEach(m => {
+          const isLive = m.status === 'live';
+          const isFinal = m.status === 'final' || m.status === 'locked';
+          const winA = isFinal && m.winnerId === m.teamAId;
+          const winB = isFinal && m.winnerId === m.teamBId;
+          html += `<div class="bracket-match${isLive ? ' live' : ''}${isFinal ? ' final' : ''}" data-game-id="${m.id}">
+            ${isLive ? '<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px"><span class="live-dot"></span><span style="font-size:10px;font-weight:700;color:#E8272C;letter-spacing:0.5px">LIVE</span></div>' : ''}
+            <div class="bracket-match-team${winA ? ' winner' : ''}"><span class="team-label">${teamAbbr(m.teamAId)}</span><span class="team-score">${(isLive || isFinal) ? (m.scoreA ?? 0) : '-'}</span></div>
+            <div class="bracket-match-divider"></div>
+            <div class="bracket-match-team${winB ? ' winner' : ''}"><span class="team-label">${teamAbbr(m.teamBId)}</span><span class="team-score">${(isLive || isFinal) ? (m.scoreB ?? 0) : '-'}</span></div>
+            <div class="bracket-match-actions">
+              ${m.status === 'scheduled' && m.teamAId && m.teamBId ? `<button class="btn btn-primary btn-sm br-start-game" data-id="${m.id}" style="font-size:11px;padding:3px 8px">Start</button>` : ''}
+              ${isLive ? `<button class="btn btn-primary btn-sm br-score-game" data-id="${m.id}" style="font-size:11px;padding:3px 8px">Score</button><button class="btn btn-success btn-sm br-finalize-game" data-id="${m.id}" style="font-size:11px;padding:3px 8px">Finalize</button>` : ''}
+              ${isFinal ? `<button class="btn btn-outline btn-sm gc-edit-score" data-id="${m.id}" style="font-size:11px;padding:3px 8px">Edit</button><button class="btn btn-warning btn-sm br-stats-game" data-id="${m.id}" style="font-size:11px;padding:3px 8px">Stats</button>` : ''}
+              <span class="badge badge-${m.status}" style="margin-left:auto;font-size:10px">${m.status.toUpperCase()}</span>
+            </div>
+          </div>`;
+        });
+        html += `</div>`;
+        if (ri < rounds.length - 1) {
+          html += `<div class="bracket-connector">`;
+          const nextCount = rounds[ri + 1]?.matches.length || 1;
+          for (let c = 0; c < nextCount; c++) {
+            html += `<div class="connector-line"></div>`;
+          }
+          html += `</div>`;
+        }
+      });
+      html += `</div>`;
+
+      html += `<div class="game-cards-grid" style="margin-top:16px">`;
+      bracketGames.forEach(g => { html += renderGameCard(g); });
+      html += `</div>`;
+
+      return html;
+    }
+
+    // ─── TEAMS ─────────────────────────────────────────────
+
+    async function loadTeams(el) {
+      const teamsList = await api('/teams');
+      el.innerHTML = `
+        <div class="page-header"><h2>Teams</h2><button id="create-team-btn" class="btn btn-primary btn-sm">Create Team</button></div>
+        <div class="card"><table><thead><tr><th>Name</th><th>Abbr</th><th>ELO</th><th>Record</th><th>Region</th><th>Actions</th></tr></thead><tbody>
+          ${teamsList.length === 0 ? '<tr><td colspan="6" style="text-align:center;color:#9CA3AF">No teams yet</td></tr>' : teamsList.map(t => `<tr>
+            <td><div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:6px;background:${t.color};display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:700">${t.logoInitials || t.abbreviation}</div><strong>${t.name}</strong></div></td>
+            <td>${t.abbreviation}</td>
+            <td>${Math.round(t.elo)}</td>
+            <td>${t.wins}W-${t.losses}L-${t.ties}T</td>
+            <td>${t.region || '-'}</td>
+            <td class="flex gap-2">
+              <button class="btn btn-primary btn-sm roster-team" data-id="${t.id}" data-name="${t.name}">Roster</button>
+              <button class="btn btn-outline btn-sm edit-team" data-id="${t.id}">Edit</button>
+              <button class="btn btn-danger btn-sm delete-team" data-id="${t.id}" data-name="${t.name}">Delete</button>
+            </td>
+          </tr>`).join('')}
+        </tbody></table></div>`;
+
+      document.getElementById('create-team-btn').onclick = () => showTeamModal();
+      document.querySelectorAll('.roster-team').forEach(btn => {
+        btn.onclick = () => showRosterModal(btn.dataset.id, btn.dataset.name);
+      });
+      document.querySelectorAll('.edit-team').forEach(btn => {
+        btn.onclick = async () => {
+          const team = teamsList.find(t => t.id === btn.dataset.id);
+          if (team) showTeamModal(team);
+        };
+      });
+      document.querySelectorAll('.delete-team').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Delete team "' + btn.dataset.name + '"? This also deletes its players.')) return;
+          await api('/teams/' + btn.dataset.id, { method: 'DELETE' });
+          loadPage('teams');
+        };
+      });
+    }
+
+    function showTeamModal(team) {
+      const isEdit = !!team;
+      const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal">
+        <h3>${isEdit ? 'Edit' : 'Create'} Team</h3>
+        <div class="form-group"><label>Name</label><input id="tm-name" value="${isEdit ? team.name : ''}"></div>
+        <div class="form-group"><label>Abbreviation</label><input id="tm-abbr" maxlength="6" value="${isEdit ? team.abbreviation : ''}"></div>
+        <div class="form-group"><label>Color</label><input id="tm-color" type="color" value="${isEdit ? team.color : '#4F6AF6'}"></div>
+        <div class="form-group"><label>Secondary Color</label><input id="tm-color2" type="color" value="${isEdit ? (team.secondaryColor || '#F5E642') : '#F5E642'}"></div>
+        <div class="form-group"><label>Logo Initials</label><input id="tm-logo" maxlength="4" value="${isEdit ? (team.logoInitials || '') : ''}"></div>
+        <div class="form-group"><label>Region</label><input id="tm-region" value="${isEdit ? (team.region || '') : ''}"></div>
+        <div id="tm-error" class="error-msg hidden"></div>
+        <div class="flex gap-2 mt-4"><button id="tm-save" class="btn btn-primary">${isEdit ? 'Save' : 'Create'}</button><button id="tm-cancel" class="btn btn-outline">Cancel</button></div>
+      </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('tm-cancel').onclick = () => overlay.remove();
+      overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+      document.getElementById('tm-save').onclick = async () => {
+        const body = {
+          name: document.getElementById('tm-name').value,
+          abbreviation: document.getElementById('tm-abbr').value,
+          color: document.getElementById('tm-color').value,
+          secondaryColor: document.getElementById('tm-color2').value,
+          logoInitials: document.getElementById('tm-logo').value,
+          region: document.getElementById('tm-region').value,
+        };
+        try {
+          if (isEdit) {
+            await api('/teams/' + team.id, { method: 'PUT', body });
+            overlay.remove(); loadPage('teams');
+          } else {
+            const newTeam = await api('/teams', { method: 'POST', body });
+            overlay.remove();
+            if (confirm('Team "' + newTeam.name + '" created! Would you like to add players to the roster now?')) {
+              showRosterModal(newTeam.id, newTeam.name, true);
+            } else {
+              loadPage('teams');
+            }
+          }
+        } catch (e) { const err = document.getElementById('tm-error'); err.textContent = e.message; err.classList.remove('hidden'); }
+      };
+    }
+
+    async function showRosterModal(teamId, teamName, refreshOnClose) {
+      const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal" style="max-width:600px"><h3>Manage Roster</h3><p style="color:#6B7280;font-size:13px">Loading...</p></div>`;
+      document.body.appendChild(overlay);
+      overlay.onclick = (e) => { if (e.target === overlay) { overlay.remove(); if (refreshOnClose) loadPage('teams'); } };
+
+      async function renderRoster() {
+        try {
+          const teamData = await api('/teams/' + teamId);
+          const roster = teamData.roster || [];
+          roster.sort((a, b) => a.number - b.number);
+          const modal = overlay.querySelector('.modal');
+          modal.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+              <div>
+                <h3 style="margin-bottom:4px">${teamName} - Roster</h3>
+                <span style="font-size:13px;color:#6B7280">${roster.length} player${roster.length !== 1 ? 's' : ''}</span>
+              </div>
+              <button id="rm-close" class="btn btn-outline btn-sm">Close</button>
+            </div>
+            <div style="background:#F9FAFB;border-radius:12px;padding:16px;margin-bottom:16px">
+              <div style="font-size:13px;font-weight:600;color:#374151;margin-bottom:8px">Add Player</div>
+              <div style="display:grid;grid-template-columns:1fr 80px 80px auto;gap:8px;align-items:end">
+                <div class="form-group" style="margin-bottom:0"><label style="font-size:11px">Name</label><input id="rm-name" placeholder="Player name" style="padding:8px 10px;font-size:13px"></div>
+                <div class="form-group" style="margin-bottom:0"><label style="font-size:11px">Position</label><select id="rm-pos" style="padding:8px 4px;font-size:13px">
+                  ${['QB','WR','RB','TE','CB','S','LB','DL','K','ATH'].map(p => '<option>' + p + '</option>').join('')}
+                </select></div>
+                <div class="form-group" style="margin-bottom:0"><label style="font-size:11px">#</label><input id="rm-num" type="number" value="0" style="padding:8px 10px;font-size:13px"></div>
+                <button id="rm-add" class="btn btn-success btn-sm" style="height:38px">Add</button>
+              </div>
+              <div id="rm-add-error" class="error-msg hidden" style="margin-top:6px"></div>
+            </div>
+            ${roster.length === 0 ? '<p style="color:#9CA3AF;font-size:13px;text-align:center;padding:20px 0">No players on this roster yet. Add one above.</p>' : `
+            <table><thead><tr><th>#</th><th>Name</th><th>Pos</th><th>ELO</th><th></th></tr></thead><tbody>
+              ${roster.map(p => `<tr>
+                <td style="font-weight:700">${p.number}</td>
+                <td style="font-weight:600">${p.name}</td>
+                <td>${p.position}</td>
+                <td>${Math.round(p.elo)}</td>
+                <td><button class="btn btn-danger btn-sm rm-remove" data-id="${p.id}" data-name="${p.name}">Remove</button></td>
+              </tr>`).join('')}
+            </tbody></table>`}
+          `;
+
+          document.getElementById('rm-close').onclick = () => { overlay.remove(); if (refreshOnClose) loadPage('teams'); };
+          document.getElementById('rm-add').onclick = async () => {
+            const name = document.getElementById('rm-name').value.trim();
+            if (!name) {
+              const err = document.getElementById('rm-add-error');
+              err.textContent = 'Player name is required.';
+              err.classList.remove('hidden');
+              return;
+            }
+            try {
+              await api('/players', { method: 'POST', body: {
+                name,
+                teamId,
+                position: document.getElementById('rm-pos').value,
+                number: parseInt(document.getElementById('rm-num').value) || 0,
+              }});
+              renderRoster();
+            } catch (e) {
+              const err = document.getElementById('rm-add-error');
+              err.textContent = e.message;
+              err.classList.remove('hidden');
+            }
+          };
+          document.querySelectorAll('.rm-remove').forEach(btn => {
+            btn.onclick = async () => {
+              if (!confirm('Remove "' + btn.dataset.name + '" from the roster?')) return;
+              try {
+                await api('/players/' + btn.dataset.id, { method: 'DELETE' });
+                renderRoster();
+              } catch (e) { alert(e.message); }
+            };
+          });
+        } catch (e) {
+          overlay.querySelector('.modal').innerHTML = `<h3>Error</h3><p style="color:#E8272C">${e.message}</p><button class="btn btn-outline mt-4" onclick="this.closest('.modal-overlay').remove()">Close</button>`;
+        }
+      }
+
+      await renderRoster();
+    }
+
+    // ─── PLAYERS ────────────────────────────────────────────
+
+    async function loadPlayers(el) {
+      const [playersList, teamsList] = await Promise.all([api('/players'), api('/teams')]);
+      const tMap = {};
+      teamsList.forEach(t => tMap[t.id] = t);
+      el.innerHTML = `
+        <div class="page-header"><h2>Players</h2><button id="create-player-btn" class="btn btn-primary btn-sm">Add Player</button></div>
+        <div class="card"><table><thead><tr><th>Name</th><th>Team</th><th>Pos</th><th>#</th><th>ELO</th><th>GP</th><th>TD</th><th>Actions</th></tr></thead><tbody>
+          ${playersList.length === 0 ? '<tr><td colspan="8" style="text-align:center;color:#9CA3AF">No players yet</td></tr>' : playersList.map(p => `<tr>
+            <td><strong>${p.name}</strong></td>
+            <td>${tMap[p.teamId]?.abbreviation || '-'}</td>
+            <td>${p.position}</td>
+            <td>${p.number}</td>
+            <td>${Math.round(p.elo)}</td>
+            <td>${p.gamesPlayed}</td>
+            <td>${p.touchdowns}</td>
+            <td class="flex gap-2">
+              <button class="btn btn-outline btn-sm edit-player" data-id="${p.id}">Edit</button>
+              <button class="btn btn-warning btn-sm mvp-player" data-id="${p.id}" data-name="${p.name}">MVP</button>
+              <button class="btn btn-sm badge-player" data-id="${p.id}" data-name="${p.name}" style="background:#6366F1;color:#fff;border:none">🏅 Badge</button>
+              <button class="btn btn-danger btn-sm delete-player" data-id="${p.id}" data-name="${p.name}">Del</button>
+            </td>
+          </tr>`).join('')}
+        </tbody></table></div>`;
+
+      document.getElementById('create-player-btn').onclick = () => showPlayerModal(null, teamsList);
+      document.querySelectorAll('.edit-player').forEach(btn => {
+        btn.onclick = () => {
+          const p = playersList.find(x => x.id === btn.dataset.id);
+          if (p) showPlayerModal(p, teamsList);
+        };
+      });
+      document.querySelectorAll('.mvp-player').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Award MVP bonus (+25 ELO) to ' + btn.dataset.name + '?')) return;
+          try { await api('/players/' + btn.dataset.id + '/mvp-bonus', { method: 'POST' }); loadPage('players'); } catch (e) { alert(e.message); }
+        };
+      });
+      document.querySelectorAll('.delete-player').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Delete player "' + btn.dataset.name + '"?')) return;
+          await api('/players/' + btn.dataset.id, { method: 'DELETE' });
+          loadPage('players');
+        };
+      });
+      document.querySelectorAll('.badge-player').forEach(btn => {
+        btn.onclick = () => showBadgeModal(btn.dataset.id, btn.dataset.name);
+      });
+    }
+
+    async function showBadgeModal(playerId, playerName) {
+      let badges = [];
+      try { badges = await api('/players/' + playerId + '/badges'); } catch(e) {}
+      const tierColors = { black: '#A8B5CC', gold: '#FFD93D', silver: '#C8D0DC' };
+      const tierSymbols = { black: '◼', gold: '◆', silver: '◇' };
+      const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal" style="max-width:480px">
+        <h3>🏅 MECA Badges — ${playerName}</h3>
+        <div id="badge-list" style="margin-bottom:16px">
+          ${badges.length === 0 ? '<p style="color:#9CA3AF;font-size:13px">No badges awarded yet.</p>' :
+            badges.map(b => `<div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:#1a1a1a;margin-bottom:8px">
+              <span style="font-size:18px;color:${tierColors[b.badgeType]||'#fff'}">${tierSymbols[b.badgeType]||'◇'}</span>
+              <div style="flex:1">
+                <div style="font-weight:700;font-size:13px;color:${tierColors[b.badgeType]||'#fff'}">${(b.badgeType||'').toUpperCase()} BADGE</div>
+                ${b.note ? `<div style="font-size:11px;color:#9CA3AF;margin-top:2px">"${b.note}"</div>` : ''}
+                <div style="font-size:10px;color:#6B7280;margin-top:2px">${new Date(b.createdAt).toLocaleDateString()}</div>
+              </div>
+              <button class="btn btn-danger btn-sm remove-badge" data-bid="${b.id}" style="font-size:11px">Remove</button>
+            </div>`).join('')}
+        </div>
+        <hr style="margin:16px 0;border-color:#2D3748">
+        <h4 style="margin-bottom:12px">Award New Badge</h4>
+        <div class="form-group"><label>Badge Type</label>
+          <select id="badge-type">
+            <option value="gold">⭐ Gold</option>
+            <option value="silver">◇ Silver</option>
+            <option value="black">◼ Black (Highest)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Note (optional)</label><input id="badge-note" placeholder="Reason for award..."></div>
+        <div id="badge-error" class="error-msg hidden"></div>
+        <div class="flex gap-2 mt-4">
+          <button id="badge-save" class="btn btn-primary">Award Badge</button>
+          <button id="badge-cancel" class="btn btn-outline">Close</button>
+        </div>
+      </div>`;
+      document.body.appendChild(overlay);
+      overlay.querySelectorAll('.remove-badge').forEach(rb => {
+        rb.onclick = async () => {
+          if (!confirm('Remove this badge?')) return;
+          try {
+            await api('/admin/badges/' + rb.dataset.bid, { method: 'DELETE' });
+            overlay.remove(); showBadgeModal(playerId, playerName);
+          } catch(e) { alert(e.message); }
+        };
+      });
+      document.getElementById('badge-cancel').onclick = () => overlay.remove();
+      overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+      document.getElementById('badge-save').onclick = async () => {
+        const badgeType = document.getElementById('badge-type').value;
+        const note = document.getElementById('badge-note').value;
+        try {
+          await api('/admin/players/' + playerId + '/badges', { method: 'POST', body: { badgeType, note } });
+          overlay.remove(); showBadgeModal(playerId, playerName);
+        } catch(e) {
+          const err = document.getElementById('badge-error');
+          err.textContent = e.message; err.classList.remove('hidden');
+        }
+      };
+    }
+
+    function showPlayerModal(player, teamsList) {
+      const isEdit = !!player;
+      const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal">
+        <h3>${isEdit ? 'Edit' : 'Add'} Player</h3>
+        <div class="form-group"><label>Name</label><input id="pl-name" value="${isEdit ? player.name : ''}"></div>
+        <div class="form-group"><label>Team</label><select id="pl-team">
+          <option value="">-- Select --</option>
+          ${teamsList.map(t => `<option value="${t.id}" ${isEdit && player.teamId === t.id ? 'selected' : ''}>${t.name}</option>`).join('')}
+        </select></div>
+        <div class="form-group"><label>Position</label><select id="pl-pos">
+          ${['QB','WR','RB','TE','CB','S','LB','DL','K','ATH'].map(p => `<option ${isEdit && player.position === p ? 'selected' : ''}>${p}</option>`).join('')}
+        </select></div>
+        <div class="form-group"><label>Number</label><input id="pl-num" type="number" value="${isEdit ? player.number : '0'}"></div>
+        <div class="form-group"><label>Region</label><input id="pl-region" value="${isEdit ? (player.region || '') : ''}"></div>
+        ${isEdit ? `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div class="form-group"><label>Touchdowns</label><input id="pl-td" type="number" value="${player.touchdowns}"></div>
+          <div class="form-group"><label>Interceptions</label><input id="pl-int" type="number" value="${player.interceptions}"></div>
+          <div class="form-group"><label>Games Played</label><input id="pl-gp" type="number" value="${player.gamesPlayed}"></div>
+          <div class="form-group"><label>Wins</label><input id="pl-wins" type="number" value="${player.wins || 0}"></div>
+          <div class="form-group"><label>MVP Awards</label><input id="pl-mvp" type="number" value="${player.mvpAwards}"></div>
+        </div>` : ''}
+        <div id="pl-error" class="error-msg hidden"></div>
+        <div class="flex gap-2 mt-4"><button id="pl-save" class="btn btn-primary">${isEdit ? 'Save' : 'Create'}</button><button id="pl-cancel" class="btn btn-outline">Cancel</button></div>
+      </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('pl-cancel').onclick = () => overlay.remove();
+      overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+      document.getElementById('pl-save').onclick = async () => {
+        const body = {
+          name: document.getElementById('pl-name').value,
+          teamId: document.getElementById('pl-team').value,
+          position: document.getElementById('pl-pos').value,
+          number: parseInt(document.getElementById('pl-num').value) || 0,
+          region: document.getElementById('pl-region').value,
+        };
+        if (isEdit) {
+          body.touchdowns = parseInt(document.getElementById('pl-td').value);
+          body.interceptions = parseInt(document.getElementById('pl-int').value);
+          body.gamesPlayed = parseInt(document.getElementById('pl-gp').value);
+          body.wins = parseInt(document.getElementById('pl-wins').value);
+          body.mvpAwards = parseInt(document.getElementById('pl-mvp').value);
+        }
+        try {
+          if (isEdit) await api('/players/' + player.id, { method: 'PUT', body });
+          else await api('/players', { method: 'POST', body });
+          overlay.remove(); loadPage('players');
+        } catch (e) { const err = document.getElementById('pl-error'); err.textContent = e.message; err.classList.remove('hidden'); }
+      };
+    }
+
+    // ─── LIVE GAMES ────────────────────────────────────────
+
+    async function loadGames(el) {
+      await refreshTeamsCache();
+      const tournamentsList = await api('/tournaments');
+      const allGames = await api('/games');
+
+      const liveGames = allGames.filter(g => g.status === 'live');
+      const otherGames = allGames.filter(g => g.status !== 'live');
+      const tournById = {};
+      tournamentsList.forEach(t => tournById[t.id] = t);
+
+      el.innerHTML = `
+        <div class="page-header">
+          <div style="display:flex;align-items:center;gap:12px">
+            <h2>Live Games</h2>
+            ${liveGames.length > 0 ? '<span class="live-indicator"><span class="live-dot"></span><span class="auto-refresh-label">Auto-refreshing every 5s</span></span>' : ''}
+          </div>
+        </div>
+        ${liveGames.length === 0 ? '<div class="card"><p style="color:#9CA3AF;font-size:14px">No live games right now.</p></div>' : `
+          <div class="game-cards-grid">${liveGames.map(g => `
+            <div class="game-card live">
+              <div class="game-header">
+                <span style="font-size:12px;color:#6B7280">${tournById[g.tournamentId]?.name || ''} - ${g.roundName || ''}</span>
+                <span class="badge badge-live">LIVE</span>
+              </div>
+              <div class="game-teams">
+                <div class="game-team"><div class="name">${teamName(g.teamAId)}</div></div>
+                <div class="game-score">${g.scoreA ?? 0} - ${g.scoreB ?? 0}</div>
+                <div class="game-team"><div class="name">${teamName(g.teamBId)}</div></div>
+              </div>
+              <div class="game-actions">
+                <button class="btn btn-primary btn-sm lg-score" data-id="${g.id}">Update Score</button>
+                <button class="btn btn-success btn-sm lg-finalize" data-id="${g.id}">Finalize</button>
+              </div>
+            </div>`).join('')}</div>`}
+
+        <div class="card" style="margin-top:20px">
+          <h3>Recent Games</h3>
+          <table><thead><tr><th>Tournament</th><th>Round</th><th>Teams</th><th>Score</th><th>Status</th></tr></thead><tbody>
+            ${otherGames.slice(0, 50).map(g => `<tr>
+              <td>${tournById[g.tournamentId]?.name || '-'}</td>
+              <td>${g.roundName || 'R' + g.roundNumber}</td>
+              <td>${teamName(g.teamAId)} vs ${teamName(g.teamBId)}</td>
+              <td style="font-weight:700">${g.status === 'scheduled' ? '-' : (g.scoreA ?? 0) + ' - ' + (g.scoreB ?? 0)}</td>
+              <td><span class="badge badge-${g.status}">${g.status}</span></td>
+            </tr>`).join('')}
+          </tbody></table>
+        </div>`;
+
+      document.querySelectorAll('.lg-score').forEach(btn => {
+        btn.onclick = () => {
+          const game = allGames.find(g => g.id === btn.dataset.id);
+          if (!game) return;
+          let lgA = game.scoreA ?? 0;
+          let lgB = game.scoreB ?? 0;
+          const tA = teamAbbr(game.teamAId);
+          const tB = teamAbbr(game.teamBId);
+          const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+          overlay.innerHTML = `<div class="modal" style="max-width:420px"></div>`;
+          document.body.appendChild(overlay);
+          overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+          function renderLgModal() {
+            overlay.querySelector('.modal').innerHTML = `
+              <h3 style="margin-bottom:16px">Update Score</h3>
+              <div style="display:flex;align-items:stretch;gap:20px;justify-content:center;margin-bottom:20px">
+                <div class="score-team-block" style="flex:1">
+                  <span style="font-size:14px;font-weight:700">${tA}</span>
+                  <span class="score-team-value" style="font-size:32px">${lgA}</span>
+                  <div class="score-btns-row" style="gap:4px">
+                    <button class="score-btn score-btn-plus lg-btn" data-team="A" data-pts="6">+6</button>
+                    <button class="score-btn score-btn-plus lg-btn" data-team="A" data-pts="3">+3</button>
+                    <button class="score-btn score-btn-plus lg-btn" data-team="A" data-pts="2">+2</button>
+                    <button class="score-btn score-btn-plus lg-btn" data-team="A" data-pts="1">+1</button>
+                    <button class="score-undo-btn lg-btn" data-team="A" data-pts="-1" title="Undo 1">↩</button>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center"><span style="font-size:18px;font-weight:700;color:#6B7280">vs</span></div>
+                <div class="score-team-block" style="flex:1">
+                  <span style="font-size:14px;font-weight:700">${tB}</span>
+                  <span class="score-team-value" style="font-size:32px">${lgB}</span>
+                  <div class="score-btns-row" style="gap:4px">
+                    <button class="score-btn score-btn-plus lg-btn" data-team="B" data-pts="6">+6</button>
+                    <button class="score-btn score-btn-plus lg-btn" data-team="B" data-pts="3">+3</button>
+                    <button class="score-btn score-btn-plus lg-btn" data-team="B" data-pts="2">+2</button>
+                    <button class="score-btn score-btn-plus lg-btn" data-team="B" data-pts="1">+1</button>
+                    <button class="score-undo-btn lg-btn" data-team="B" data-pts="-1" title="Undo 1">↩</button>
+                  </div>
+                </div>
+              </div>
+              <div class="flex gap-2"><button id="lg-save" class="btn btn-primary" style="flex:1">Save</button><button id="lg-cancel" class="btn btn-outline" style="flex:1">Cancel</button></div>`;
+            overlay.querySelectorAll('.lg-btn').forEach(b => {
+              b.onclick = () => {
+                const pts = parseInt(b.dataset.pts);
+                if (b.dataset.team === 'A') lgA = Math.max(0, lgA + pts);
+                else lgB = Math.max(0, lgB + pts);
+                renderLgModal();
+              };
+            });
+            document.getElementById('lg-cancel').onclick = () => overlay.remove();
+            document.getElementById('lg-save').onclick = async () => {
+              try {
+                await api('/games/' + game.id + '/score', { method: 'PUT', body: { scoreA: lgA, scoreB: lgB }});
+                overlay.remove(); loadGames(el);
+              } catch (e) { alert(e.message); }
+            };
+          }
+          renderLgModal();
+        };
+      });
+
+      document.querySelectorAll('.lg-finalize').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Finalize this game? ELO will update and winner advances.')) return;
+          try { await api('/games/' + btn.dataset.id + '/finalize', { method: 'PUT' }); loadGames(el); } catch (e) { alert(e.message); }
+        };
+      });
+
+      if (liveRefreshInterval) { clearInterval(liveRefreshInterval); liveRefreshInterval = null; }
+      if (liveGames.length > 0) {
+        liveRefreshInterval = setInterval(() => loadGames(el), 5000);
+      }
+    }
+
+    // ─── ACCOUNTS ────────────────────────────────────────
+
+    async function loadAccounts(el) {
+      const [accountsList, teamsList, playersList] = await Promise.all([
+        api('/admin/accounts'), api('/teams'), api('/players')
+      ]);
+      const tMap = {}; teamsList.forEach(t => tMap[t.id] = t);
+      const pMap = {}; playersList.forEach(p => pMap[p.id] = p);
+
+      const roleBadge = (r) => {
+        const colors = { admin: 'badge-admin', player: 'badge-upcoming', coach: 'badge-warning', spectator: 'badge-completed', referee: 'badge-draft' };
+        return `<span class="badge ${colors[r] || 'badge-completed'}">${r}</span>`;
+      };
+
+      el.innerHTML = `
+        <div class="page-header"><h2>Accounts</h2>
+          <span style="font-size:13px;color:#6B7280">${accountsList.length} registered users</span>
+        </div>
+        <div class="card"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Team</th><th>Player Link</th><th>Joined</th><th>Actions</th></tr></thead><tbody>
+          ${accountsList.length === 0 ? '<tr><td colspan="7" style="text-align:center;color:#9CA3AF">No accounts yet</td></tr>' : accountsList.map(u => `<tr>
+            <td><strong>${u.name || u.username}</strong></td>
+            <td>${u.email || '-'}</td>
+            <td>${roleBadge(u.role)}</td>
+            <td>${u.teamId ? (tMap[u.teamId]?.abbreviation || 'Unknown') : '-'}</td>
+            <td>${u.playerId ? (u.playerLinkApproved ? '<span class="badge badge-final">Linked: ' + (pMap[u.playerId]?.name || 'Unknown') + '</span>' : '<span class="badge badge-warning">Pending: ' + (pMap[u.playerId]?.name || 'Unknown') + '</span>') : '-'}</td>
+            <td style="white-space:nowrap">${new Date(u.createdAt).toLocaleDateString()}</td>
+            <td class="flex gap-2">
+              <button class="btn btn-outline btn-sm edit-account" data-id="${u.id}">Edit</button>
+              ${u.role !== 'admin' ? `<button class="btn btn-danger btn-sm delete-account" data-id="${u.id}" data-name="${u.name || u.username}">Delete</button>` : ''}
+            </td>
+          </tr>`).join('')}
+        </tbody></table></div>`;
+
+      document.querySelectorAll('.edit-account').forEach(btn => {
+        btn.onclick = () => {
+          const acct = accountsList.find(u => u.id === btn.dataset.id);
+          if (acct) showAccountModal(acct, teamsList, playersList);
+        };
+      });
+      document.querySelectorAll('.delete-account').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Delete account "' + btn.dataset.name + '"? This cannot be undone.')) return;
+          try {
+            await api('/admin/accounts/' + btn.dataset.id, { method: 'DELETE' });
+            loadAccounts(el);
+          } catch (e) { alert(e.message); }
+        };
+      });
+    }
+
+    function showAccountModal(acct, teamsList, playersList) {
+      const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+      overlay.innerHTML = `<div class="modal">
+        <h3>Edit Account</h3>
+        <div style="margin-bottom:16px;padding:12px;background:#F9FAFB;border-radius:8px">
+          <div style="font-weight:700;font-size:16px">${acct.name || acct.username}</div>
+          <div style="font-size:13px;color:#6B7280">${acct.email || 'No email'}</div>
+        </div>
+        <div class="form-group"><label>Role</label><select id="acct-role">
+          ${['admin','player','coach','referee','spectator'].map(r => `<option value="${r}" ${acct.role === r ? 'selected' : ''}>${r.charAt(0).toUpperCase() + r.slice(1)}</option>`).join('')}
+        </select></div>
+        <div class="form-group"><label>Team</label><select id="acct-team">
+          <option value="">-- None --</option>
+          ${teamsList.map(t => `<option value="${t.id}" ${acct.teamId === t.id ? 'selected' : ''}>${t.name}</option>`).join('')}
+        </select></div>
+        <div class="form-group"><label>Player Link</label><select id="acct-player">
+          <option value="">-- None --</option>
+          ${playersList.map(p => `<option value="${p.id}" ${acct.playerId === p.id ? 'selected' : ''}>${p.name} (#${p.number} ${p.position})</option>`).join('')}
+        </select></div>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid #E5E7EB">
+          <label style="font-size:13px;font-weight:600;color:#374151;margin-bottom:6px;display:block">Reset Password</label>
+          <div style="display:flex;gap:8px">
+            <input id="acct-new-pw" type="text" placeholder="New password (min 6 chars)" style="flex:1;padding:8px 10px;border:1px solid #E5E7EB;border-radius:8px;font-size:13px">
+            <button id="acct-reset-pw" class="btn btn-outline btn-sm" style="white-space:nowrap">Reset Password</button>
+          </div>
+        </div>
+        <div id="acct-error" class="error-msg hidden"></div>
+        <div class="flex gap-2 mt-4"><button id="acct-save" class="btn btn-primary">Save</button><button id="acct-cancel" class="btn btn-outline">Cancel</button></div>
+      </div>`;
+      document.body.appendChild(overlay);
+      document.getElementById('acct-cancel').onclick = () => overlay.remove();
+      overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+      document.getElementById('acct-reset-pw').onclick = async () => {
+        const newPw = document.getElementById('acct-new-pw').value.trim();
+        if (!newPw || newPw.length < 6) { alert('Password must be at least 6 characters.'); return; }
+        if (!confirm('Reset password for ' + (acct.name || acct.username) + '?')) return;
+        try {
+          await api('/admin/accounts/' + acct.id + '/reset-password', { method: 'PUT', body: { newPassword: newPw } });
+          alert('Password reset successfully!');
+          document.getElementById('acct-new-pw').value = '';
+        } catch (e) { alert(e.message); }
+      };
+      document.getElementById('acct-save').onclick = async () => {
+        try {
+          await api('/admin/accounts/' + acct.id, { method: 'PUT', body: {
+            role: document.getElementById('acct-role').value,
+            teamId: document.getElementById('acct-team').value,
+            playerId: document.getElementById('acct-player').value,
+          }});
+          overlay.remove();
+          loadPage('accounts');
+        } catch (e) {
+          const err = document.getElementById('acct-error');
+          err.textContent = e.message; err.classList.remove('hidden');
+        }
+      };
+    }
+
+    // ─── ANNOUNCEMENTS ────────────────────────────────────
+
+    async function loadAnnouncements(el) {
+      const tournamentsList = await api('/tournaments');
+      const events = await api('/activity');
+      el.innerHTML = `
+        <div class="page-header">
+          <h2>Announcements</h2>
+          <button id="new-announcement" class="btn btn-primary btn-sm">+ New Announcement</button>
+        </div>
+        <div class="card">
+          <h3>Recent Activity Feed Items</h3>
+          <table><thead><tr><th>Type</th><th>Title</th><th>Description</th><th>Time</th></tr></thead><tbody>
+            ${events.length === 0 ? '<tr><td colspan="4" style="text-align:center;color:#6B7280">No activity events yet</td></tr>' : ''}
+            ${events.map(e => `<tr>
+              <td><span class="badge badge-${e.type === 'announcement' ? 'warning' : e.type === 'result' ? 'live' : 'upcoming'}">${e.type.toUpperCase()}</span></td>
+              <td style="font-weight:600">${e.title}</td>
+              <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis">${e.description}</td>
+              <td style="white-space:nowrap">${new Date(e.createdAt).toLocaleString()}</td>
+            </tr>`).join('')}
+          </tbody></table>
+        </div>`;
+
+      document.getElementById('new-announcement').onclick = () => {
+        const overlay = document.createElement('div'); overlay.className = 'modal-overlay';
+        overlay.innerHTML = `<div class="modal">
+          <h3>New Announcement</h3>
+          <div class="form-group"><label>Type</label><select id="ann-type">
+            <option value="announcement">Announcement (News)</option>
+            <option value="schedule">Schedule Update</option>
+            <option value="result">Result</option>
+          </select></div>
+          <div class="form-group"><label>Tournament (optional)</label><select id="ann-tournament">
+            <option value="">-- All / General --</option>
+            ${tournamentsList.map(t => `<option value="${t.id}">${t.name}</option>`).join('')}
+          </select></div>
+          <div class="form-group"><label>Title</label><input id="ann-title" type="text" placeholder="e.g. Weather Delay - Games Pushed Back 1 Hour"></div>
+          <div class="form-group"><label>Description</label><textarea id="ann-desc" rows="3" placeholder="Provide details about the announcement..."></textarea></div>
+          <div id="ann-error" class="error-msg hidden"></div>
+          <div class="flex gap-2 mt-4">
+            <button id="ann-save" class="btn btn-primary">Post Announcement</button>
+            <button id="ann-cancel" class="btn btn-outline">Cancel</button>
+          </div>
+        </div>`;
+        document.body.appendChild(overlay);
+        document.getElementById('ann-cancel').onclick = () => overlay.remove();
+        overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+        document.getElementById('ann-save').onclick = async () => {
+          const title = document.getElementById('ann-title').value.trim();
+          const description = document.getElementById('ann-desc').value.trim();
+          if (!title || !description) {
+            const err = document.getElementById('ann-error');
+            err.textContent = 'Title and description are required.';
+            err.classList.remove('hidden');
+            return;
+          }
+          try {
+            await api('/activity', { method: 'POST', body: {
+              type: document.getElementById('ann-type').value,
+              title,
+              description,
+              tournamentId: document.getElementById('ann-tournament').value || null,
+            }});
+            overlay.remove();
+            loadAnnouncements(el);
+          } catch (e) {
+            const err = document.getElementById('ann-error');
+            err.textContent = e.message;
+            err.classList.remove('hidden');
+          }
+        };
+      };
+    }
+
+    // ─── PLAYER APPROVALS ────────────────────────────────
+
+    async function loadApprovals(el) {
+      const [pending, teamsList, playersList] = await Promise.all([
+        api('/admin/pending-players'),
+        api('/teams'),
+        api('/players'),
+      ]);
+      const tMap = {};
+      teamsList.forEach(t => tMap[t.id] = t);
+      const pMap = {};
+      playersList.forEach(p => pMap[p.id] = p);
+
+      el.innerHTML = `
+        <div class="page-header"><h2>Approvals</h2></div>
+        <div class="card">
+          ${pending.length === 0 ? '<p style="color:#9CA3AF;font-size:14px">No pending approval requests.</p>' : `
+          <table><thead><tr><th>Name</th><th>Role</th><th>Email</th><th>Team</th><th>Player Link</th><th>Actions</th></tr></thead><tbody>
+            ${pending.map(u => `<tr>
+              <td style="font-weight:600">${u.name || u.username}</td>
+              <td><span class="badge badge-${u.role === 'coach' ? 'warning' : 'upcoming'}">${u.role}</span></td>
+              <td>${u.email || '-'}</td>
+              <td>${u.teamId ? (u.teamName || tMap[u.teamId]?.name || u.teamId) : '-'}</td>
+              <td>${u.playerId ? (pMap[u.playerId]?.name || u.playerId) : '-'}</td>
+              <td class="flex gap-2">
+                <button class="btn btn-success btn-sm approve-player" data-id="${u.id}" ${u.coachTeamId ? `data-coach-team-id="${u.coachTeamId}"` : ''}>Approve</button>
+                <button class="btn btn-danger btn-sm reject-player" data-id="${u.id}" ${u.coachTeamId ? `data-coach-team-id="${u.coachTeamId}"` : ''}>Reject</button>
+              </td>
+            </tr>`).join('')}
+          </tbody></table>`}
+        </div>`;
+
+      document.querySelectorAll('.approve-player').forEach(btn => {
+        btn.onclick = async () => {
+          const body = btn.dataset.coachTeamId ? { coachTeamId: btn.dataset.coachTeamId } : undefined;
+          try { await api('/admin/approve-player/' + btn.dataset.id, { method: 'PUT', body }); loadApprovals(el); loadApprovalsBadge(); } catch (e) { alert(e.message); }
+        };
+      });
+      document.querySelectorAll('.reject-player').forEach(btn => {
+        btn.onclick = async () => {
+          if (!confirm('Reject this link request?')) return;
+          const body = btn.dataset.coachTeamId ? { coachTeamId: btn.dataset.coachTeamId } : undefined;
+          try { await api('/admin/reject-player/' + btn.dataset.id, { method: 'PUT', body }); loadApprovals(el); loadApprovalsBadge(); } catch (e) { alert(e.message); }
+        };
+      });
+    }
+
+    // ─── AUDIT LOG ────────────────────────────────────────
+
+    async function loadAudit(el) {
+      const list = await api('/audit-logs');
+      el.innerHTML = `
+        <div class="page-header"><h2>Audit Log</h2></div>
+        <div class="card"><table><thead><tr><th>Time</th><th>Action</th><th>Entity</th><th>Details</th></tr></thead><tbody>
+          ${list.map(l => `<tr>
+            <td style="white-space:nowrap">${new Date(l.createdAt).toLocaleString()}</td>
+            <td><span class="badge badge-admin">${l.action}</span></td>
+            <td>${l.entityType ? l.entityType + ' ' + (l.entityId || '').slice(0,8) : '-'}</td>
+            <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis">${l.details ? JSON.stringify(l.details) : '-'}</td>
+          </tr>`).join('')}
+        </tbody></table></div>`;
+    }
+
+    (async () => {
+      try { currentUser = await api('/auth/me'); if (!currentUser || currentUser.role !== 'admin') currentUser = null; } catch {}
+      render();
+    })();
+  </script>
+</body>
+</html>
